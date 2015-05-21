@@ -1,0 +1,1 @@
+This code is the implemention of consumer Rating as a Service (RaaS) - a building block service that can be used to add the consumer feedback lifecycle feature in the development of various web platforms
