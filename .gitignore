@@ -2,3 +2,6 @@
 # for gedit temporary files 
 *~
 
+# data and node_modules directory
+node_modules/
+data/
