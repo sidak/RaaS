@@ -69,8 +69,14 @@ app.use(function(err, req, res, next) {
 
 
 module.exports = app;
-//---------------------------------------
+//-----------system parameters----------------------------
 
+var alpha = 0.6;
+var beta = 0.5;
+var gamma1 = 0.75; // for siblings
+var gamma2 = 0.25; // for cousins
+
+//------------------
 mongoClient.connect(url, function(err, db){
 	if(err) console.log("there was an error: " ,err);
 	else {
@@ -79,123 +85,124 @@ mongoClient.connect(url, function(err, db){
 		var clln = db.collection("services");
 		var service_data = [
 					{ 
+						name:"meta",						
 						root:"a",
 						numServices:7,
-						data:[
-								{
-									a:{
-										"agg_rating_score":-1,
-										"own_rating_cont":-1,
-										"children_rating_cont":-1,
-										"own_wmean_rating":-1,						
-										"universe_wmean_rating":-1,
-										"consumer_ratings":[5,4],
-										"consumer_relevance":[4,5],
-										"rating_trust_value":-1,
-										"trust_votes":-1,
-										"children":[{"name":"b1","wt":0.5},{"name":"b2","wt":0.5}],
-										"parent":[]
-							
-									}
-								},
-								{
-									b1:{
-										"agg_rating_score":-1,
-										"own_rating_cont":-1,
-										"children_rating_cont":-1,
-										"own_wmean_rating":-1,						
-										"universe_wmean_rating":-1,
-										"consumer_ratings":[2,3,3],
-										"consumer_relevance":[4,5,4],
-										"rating_trust_value":-1,
-										"trust_votes":-1,
-										"children":[{"name":"c1","wt":0.6},{"name":"c2","wt":0.4}],
-										"parent":["a"]
-							
-									}
-								},
-								{	
-									b2:{
-										"agg_rating_score":-1,
-										"own_rating_cont":-1,
-										"children_rating_cont":-1,
-										"own_wmean_rating":-1,						
-										"universe_wmean_rating":-1,
-										"consumer_ratings":[5],
-										"consumer_relevance":[5],
-										"rating_trust_value":-1,
-										"trust_votes":-1,
-										"children":[{"name":"c3","wt":0.3},{"name":"c4","wt":0.7}],
-										"parent":["a"]
-							
-									}
-								},	
-								{
-									c1:{
-										"agg_rating_score":-1,
-										"own_rating_cont":-1,
-										"children_rating_cont":-1,
-										"own_wmean_rating":-1,						
-										"universe_wmean_rating":-1,
-										"consumer_ratings":[4,4,5,3],
-										"consumer_relevance":[5,3,4,3],
-										"rating_trust_value":-1,
-										"trust_votes":-1,
-										"children":[],
-										"parent":["b1"]
-							
-									}
-								},
-								{					
-									c2:{
-										"agg_rating_score":-1,
-										"own_rating_cont":-1,
-										"children_rating_cont":-1,
-										"own_wmean_rating":-1,						
-										"universe_wmean_rating":-1,
-										"consumer_ratings":[3,2,3],
-										"consumer_relevance":[4,2,3],
-										"rating_trust_value":-1,
-										"trust_votes":-1,
-										"children":[],
-										"parent":["b1"]
-							
-									}
-								},
-								{
-									c3:{
-										"agg_rating_score":-1,
-										"own_rating_cont":-1,
-										"children_rating_cont":-1,
-										"own_wmean_rating":-1,						
-										"universe_wmean_rating":-1,
-										"consumer_ratings":[4,4],
-										"consumer_relevance":[4,5],
-										"rating_trust_value":-1,
-										"trust_votes":-1,
-										"children":[],
-										"parent":["b2"]
-							
-									}
-								},
-								{
-									c4:{
-										"agg_rating_score":-1,
-										"own_rating_cont":-1,
-										"children_rating_cont":-1,
-										"own_wmean_rating":-1,						
-										"universe_wmean_rating":-1,
-										"consumer_ratings":[5,5,4],
-										"consumer_relevance":[4,5,4],
-										"rating_trust_value":-1,
-										"trust_votes":-1,
-										"children":[],
-										"parent":["b2"]
-							
-									}
-								}
-							]
+					},
+					{
+						"name":"a",
+						"agg_rating_score":-1,
+						"own_rating_cont":-1,
+						"children_rating_cont":-1,
+						"own_wmean_rating":-1,						
+						"universe_wmean_rating":-1,
+						"consumer_ratings":[5,4],
+						"consumer_relevance":[4,5],
+						"rating_trust_value":-1,
+						"trust_votes":-1,
+						"children":[{"name":"b1","wt":0.5},{"name":"b2","wt":0.5}],
+						"parent":[]
+			
+					
+					},
+					{
+						"name":"b1",
+						"agg_rating_score":-1,
+						"own_rating_cont":-1,
+						"children_rating_cont":-1,
+						"own_wmean_rating":-1,						
+						"universe_wmean_rating":-1,
+						"consumer_ratings":[2,3,3],
+						"consumer_relevance":[4,5,4],
+						"rating_trust_value":-1,
+						"trust_votes":-1,
+						"children":[{"name":"c1","wt":0.6},{"name":"c2","wt":0.4}],
+						"parent":["a"]
+			
+					
+					},
+					{	
+						"name":"b2",
+						"agg_rating_score":-1,
+						"own_rating_cont":-1,
+						"children_rating_cont":-1,
+						"own_wmean_rating":-1,						
+						"universe_wmean_rating":-1,
+						"consumer_ratings":[5],
+						"consumer_relevance":[5],
+						"rating_trust_value":-1,
+						"trust_votes":-1,
+						"children":[{"name":"c3","wt":0.3},{"name":"c4","wt":0.7}],
+						"parent":["a"]
+			
+					
+					},	
+					{
+						"name":"c1",
+						"agg_rating_score":-1,
+						"own_rating_cont":-1,
+						"children_rating_cont":-1,
+						"own_wmean_rating":-1,						
+						"universe_wmean_rating":-1,
+						"consumer_ratings":[4,4,5,3],
+						"consumer_relevance":[5,3,4,3],
+						"rating_trust_value":-1,
+						"trust_votes":-1,
+						"children":[],
+						"parent":["b1"]
+		
+					
+					},
+					{					
+						"name":"c2",
+						"agg_rating_score":-1,
+						"own_rating_cont":-1,
+						"children_rating_cont":-1,
+						"own_wmean_rating":-1,						
+						"universe_wmean_rating":-1,
+						"consumer_ratings":[3,2,3],
+						"consumer_relevance":[4,2,3],
+						"rating_trust_value":-1,
+						"trust_votes":-1,
+						"children":[],
+						"parent":["b1"]
+			
+					
+					},
+					{
+						"name":"c3",
+						"agg_rating_score":-1,
+						"own_rating_cont":-1,
+						"children_rating_cont":-1,
+						"own_wmean_rating":-1,						
+						"universe_wmean_rating":-1,
+						"consumer_ratings":[4,4],
+						"consumer_relevance":[4,5],
+						"rating_trust_value":-1,
+						"trust_votes":-1,
+						"children":[],
+						"parent":["b2"]
+			
+					
+					},
+					{
+							"name":"c4",
+							"agg_rating_score":-1,
+							"own_rating_cont":-1,
+							"children_rating_cont":-1,
+							"own_wmean_rating":-1,						
+							"universe_wmean_rating":-1,
+							"consumer_ratings":[5,5,4],
+							"consumer_relevance":[4,5,4],
+							"rating_trust_value":-1,
+							"trust_votes":-1,
+							"children":[],
+							"parent":["b2"]
+				
+						
 					}
+						
+					
 				];
 		clln.insert(service_data, function(err, result){
 			if(err)console.log("there was an error in inserting data : ",err);
@@ -211,7 +218,7 @@ mongoClient.connect(url, function(err, db){
 		cursor.each(function(err, res){
 			if(err)console.log(err);
 			else {
-				console.log('\n\n\n finding users with age 13 \n\n\n');
+				console.log('\n\n\n finding services with trust_votesis -1 \n\n\n');
 				console.log(res);
 			}
 			db.close();	
