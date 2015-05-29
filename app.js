@@ -79,6 +79,21 @@ var gamma2 = 0.25; // for cousins
 //---------------------- CONSTANTS---------------
 
 var META= "meta";
+
+//--------------------- helper methods
+
+// it assumes that connection has been established
+function getJsonObjectByNameFromDB(name, collection, cb){
+	var myCursor = collection.find({"name":name});
+	myCursor.limit(1);			
+	myCursor.each(function(err,result){
+		if(err)cb(err);
+		else if(result!=null){
+			cb("", result);
+		}
+	});
+}
+
 //------------------
 mongoClient.connect(url, function(err, db){
 	if(err) console.log("there was an error: " ,err);
@@ -208,43 +223,43 @@ mongoClient.connect(url, function(err, db){
 						
 					
 				];
+		
 		clln.insert(service_data, function(err, result){
 			if(err)console.log("there was an error in inserting data : ",err);
 			else {
 				console.log("data inserted successfully and is :\n ", result);	
 				console.log("now finding one doc \n\n");
-				var myCursor = clln.find({name:"meta"});
-				myCursor.limit(1);			
-				var service_root;
-				var queue =[];				
-				myCursor.each(function(err,result){
-					if(err)console.log(err);
-					else {
-						if(result!=null){
-							service_root = result.root;
-							console.log("the root is ", service_root);
-							console.log("\n the metadata is \n");					
-							console.log(result);
-							// do bfs from (root) and then do a reverse bfs  
-							//bfs(queue, 
-						}
-						db.close();
-					}		
-				});
-					
 				
+				getJsonObjectByNameFromDB("meta", clln, function (err, result){
+					if(err)console.log(err);
+					else if (result!=null){
+						var service_root;
+						var queue =[];
+						var element_list=[];				
+						service_root = result.root;
+						console.log("the root is ", service_root);
+						console.log("\n the metadata is \n");					
+						console.log(result);
+						
+						// do bfs from (root) and then do a reverse bfs  
+						//bfs(queue, 
+							
+						/*queue.push(service_root);
+							
+						while (queue.length!=0){
+							var ele = queue.shift();
+							element_list.push(ele);
+							// read the ele from db
+							
+							// get its json obj
+							// update tx and r(x)
+							// loop for it's children and push them into the queue
+							
+						}*/	
+						db.close();
+					}
+				});		
 			}
-
-			//db.close();	
-			//
-		//var service_root = metadata.root;	
-		});
-		
-		
-		
-		
-			
-		
-		
-		}	
+		});	
+	}		
 });
