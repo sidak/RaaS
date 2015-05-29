@@ -5,3 +5,6 @@
 # data and node_modules directory
 node_modules/
 data/
+
+# npm log for debugging
+npm-debug.log

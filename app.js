@@ -76,6 +76,9 @@ var beta = 0.5;
 var gamma1 = 0.75; // for siblings
 var gamma2 = 0.25; // for cousins
 
+//---------------------- CONSTANTS---------------
+
+var META= "meta";
 //------------------
 mongoClient.connect(url, function(err, db){
 	if(err) console.log("there was an error: " ,err);
@@ -88,6 +91,7 @@ mongoClient.connect(url, function(err, db){
 						name:"meta",						
 						root:"a",
 						numServices:7,
+						serviceNames:["a","b1","b2","c1","c2","c3","c4"]					
 					},
 					{
 						"name":"a",
@@ -208,22 +212,39 @@ mongoClient.connect(url, function(err, db){
 			if(err)console.log("there was an error in inserting data : ",err);
 			else {
 				console.log("data inserted successfully and is :\n ", result);	
-			}
+				console.log("now finding one doc \n\n");
+				var myCursor = clln.find({name:"meta"});
+				myCursor.limit(1);			
+				var service_root;
+				var queue =[];				
+				myCursor.each(function(err,result){
+					if(err)console.log(err);
+					else {
+						if(result!=null){
+							service_root = result.root;
+							console.log("the root is ", service_root);
+							console.log("\n the metadata is \n");					
+							console.log(result);
+							// do bfs from (root) and then do a reverse bfs  
+							//bfs(queue, 
+						}
+						db.close();
+					}		
+				});
 					
+				
+			}
+
+			//db.close();	
+			//
+		//var service_root = metadata.root;	
 		});
 		
-		var cursor = clln.find({trust_votes:-1});
-		//cursor.limit(7);
-		//cursor.sort({username:1});
-		cursor.each(function(err, res){
-			if(err)console.log(err);
-			else {
-				console.log('\n\n\n finding services with trust_votesis -1 \n\n\n');
-				console.log(res);
-			}
-			db.close();	
-		});
+		
+		
+		
 			
+		
 		
 		}	
 });
