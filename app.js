@@ -79,6 +79,21 @@ var gamma2 = 0.25; // for cousins
 //---------------------- CONSTANTS---------------
 
 var META= "meta";
+var KEY_NAME="name";
+var KEY_ARS="agg_rating_score";
+var KEY_ORC="own_rating_cont";
+var KEY_CRC="children_rating_cont";
+var KEY_OWR="own_wmean_rating";
+var KEY_UWR="universe_wmean_rating";
+var KEY_CRa="consumer_ratings";
+var KEY_CRe="consumer_relevance";
+var KEY_RTV="rating_trust_value";
+var KEY_TV="trust_votes";
+var KEY_CHILDREN="children";
+var KEY_PARENT="parent";
+var KEY_CHILDREN_NAME="name";
+var KEY_CHILDREN_WT="wt";
+
 
 //--------------------- helper methods
 
@@ -233,10 +248,9 @@ mongoClient.connect(url, function(err, db){
 				getJsonObjectByNameFromDB("meta", clln, function (err, result){
 					if(err)console.log(err);
 					else if (result!=null){
-						var service_root;
 						var queue =[];
 						var element_list=[];				
-						service_root = result.root;
+						var service_root = result.root;
 						console.log("the root is ", service_root);
 						console.log("\n the metadata is \n");					
 						console.log(result);
@@ -244,19 +258,60 @@ mongoClient.connect(url, function(err, db){
 						// do bfs from (root) and then do a reverse bfs  
 						//bfs(queue, 
 							
-						/*queue.push(service_root);
+						queue.push(service_root);
 							
 						while (queue.length!=0){
+							console.log("it fucked up even more");
 							var ele = queue.shift();
 							element_list.push(ele);
 							// read the ele from db
-							
-							// get its json obj
-							// update tx and r(x)
-							// loop for it's children and push them into the queue
-							
-						}*/	
-						db.close();
+							getJsonObjectByNameFromDB(ele, clln, function(err, result){
+								if(err)console.log(err);
+								else{
+									// get its json obj
+									
+									var s_obj= result;
+									console.log(s_obj);
+									var s_t_votes= 0;
+									var s_relevance= s_obj[KEY_CRe];
+									for(var i=0; i<s_relevance.length;i++){
+										s_t_votes+=s_relevance[i];
+									}
+									var s_ratings=s_obj[KEY_CRa];
+									var s_owr=0;
+									for(var i=0; i<s_ratings.length;i++){
+										s_owr+=(s_ratings[i]*s_relevance[i]);
+									}
+									s_owr/=s_t_votes;
+									
+									// update tx and r(x)
+									clln.update(
+										{KEY_NAME:ele}, 
+										{
+											$set:{
+												KEY_OWR:s_owr,
+												KEY_TV:s_t_votes
+											}
+										},
+										function (err, numUpdated){
+											if(err)console.log(err);
+											else if (numUpdated!=0){
+												console.log(" total entries updated: ", numUpdated); 
+											}
+										}
+									);
+									
+									// loop for it's children and push them into the queue
+									var s_children = s_obj[KEY_CHILDREN];
+									for(var i=0; i<s_children.length; i++){
+										var s_child = s_children[i];
+										queue.push(s_child[KEY_CHILDREN_NAME]);
+									}
+								}
+							});
+							console.log("it fucked up");
+						}	
+						
 					}
 				});		
 			}
