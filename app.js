@@ -297,11 +297,11 @@ mongoClient.connect(url, function(err, db){
 									
 									// update tx and r(x)
 									clln.update(
-										{KEY_NAME:ele}, 
+										{"name":ele}, 
 										{
 											$set:{
-												KEY_OWR:s_owr,
-												KEY_TV:s_t_votes
+												"own_wmean_rating":s_owr,
+												"trust_votes":s_t_votes
 											}
 										},
 										function (err, numUpdated){
