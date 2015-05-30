@@ -257,16 +257,15 @@ mongoClient.connect(url, function(err, db){
 						
 						// do bfs from (root) and then do a reverse bfs  
 						//bfs(queue, 
-							
-						queue.push(service_root);
-							
-						while (queue.length!=0){
-							console.log("it fucked up even more");
-							var ele = queue.shift();
+						
+						
+						// Async task (same in all examples in this chapter)
+						function async(ele, callback) {
+							console.log("it not fucked up even more");
 							element_list.push(ele);
 							// read the ele from db
 							getJsonObjectByNameFromDB(ele, clln, function(err, result){
-								if(err)console.log(err);
+								if(err)callback(err);
 								else{
 									// get its json obj
 									
@@ -274,6 +273,10 @@ mongoClient.connect(url, function(err, db){
 									console.log(s_obj);
 									var s_t_votes= 0;
 									var s_relevance= s_obj[KEY_CRe];
+									
+									// TODO:	it's better to process these in batches or some units of feedback
+									// otherwise the code will be a blocking code
+									
 									for(var i=0; i<s_relevance.length;i++){
 										s_t_votes+=s_relevance[i];
 									}
@@ -283,6 +286,14 @@ mongoClient.connect(url, function(err, db){
 										s_owr+=(s_ratings[i]*s_relevance[i]);
 									}
 									s_owr/=s_t_votes;
+									console.log("s_t_votes is ", s_t_votes);
+									console.log("s_ownr is ",s_owr);
+									// loop for it's children and push them into the queue
+									var s_children = s_obj[KEY_CHILDREN];
+									for(var i=0; i<s_children.length; i++){
+										var s_child = s_children[i];
+										queue.push(s_child[KEY_CHILDREN_NAME]);
+									}
 									
 									// update tx and r(x)
 									clln.update(
@@ -296,21 +307,41 @@ mongoClient.connect(url, function(err, db){
 										function (err, numUpdated){
 											if(err)console.log(err);
 											else if (numUpdated!=0){
-												console.log(" total entries updated: ", numUpdated); 
+												callback(null, numUpdated); 
 											}
 										}
 									);
 									
-									// loop for it's children and push them into the queue
-									var s_children = s_obj[KEY_CHILDREN];
-									for(var i=0; i<s_children.length; i++){
-										var s_child = s_children[i];
-										queue.push(s_child[KEY_CHILDREN_NAME]);
-									}
+									
 								}
 							});
-							console.log("it fucked up");
-						}	
+						}
+						
+						// Final task (same in all the examples)
+						function final() { 
+							console.log('Done updating'); 
+							db.close();
+						}
+
+						// A simple async series:
+						function series(element) {
+						  if(element) {
+							async( element, function(err, result) {
+							  if(err){
+								console.log(err);
+							  }
+							  else if (result!=null){
+								  console.log( "Records updated : ", result);
+								  return series(queue.shift());
+							  }
+							});
+						  } else {
+							return final();
+						  }
+						}
+						
+						queue.push(service_root);
+						series(queue.shift());
 						
 					}
 				});		
