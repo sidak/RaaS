@@ -321,11 +321,19 @@ function bfTraversalStep(clln, ele, callback) {
 }
 
 function uwrCalcStep(clln, ele, callback) {
-		
+	// Update the value of Universe Weighted Mean 
+	// Rating U(x) , for the node/service element 'ele'
+	// And also calculate the value of the	U(x) for it's children 
+	// and save it for use by them during the traversal
+	
 	var s_uwr=0;
 	var s_name = ele;
 	var s_uwr_children=0;
-	// calculate uwr 
+	
+	// If the node is root then U(x) = R(x)
+	// i.e, Universe Weighted Mean Rating is equal to
+	// Own Weighted Mean Rating for the node
+	// Otherwise get it from the services_uwr object
 	
 	if(s_name===service_root){
 		s_uwr=services_owr[s_name];
@@ -337,42 +345,75 @@ function uwrCalcStep(clln, ele, callback) {
 		console.log('\n s_uwr from the services array is \n');
 		console.log(s_uwr);
 	}
+	// Calculation of UWR for the child nodes 
+	// UWR involves the contribution from the siblings 
+	// with weight as gamma1 and from the cousins
+	// with weight gamma2
 	
 	var siblings_ra_re=0;
 	var siblings_tv=0;
 	var cousins_ra_re=0;
 	var cousins_tv=0;
+	var s_children=[];
 	var s_siblings=services_siblings[s_name];
-	var s_children = services_children[s_name];
 	
-	if(s_children.length!==0){
-		for(var i=0; i<s_siblings.length; i++){
-			if(s_siblings[i]===s_name)continue;
-			var cousin_children= services_children[s_siblings[i]];
-			
-			for (var j=0; j<cousin_children.length; j++){
-				cousins_ra_re+= (services_owr[cousin_children[i]]*services_tv[cousin_children[i]]);
-				cousins_tv+= services_tv[cousin_children[i]];
+	// The services_children array has children elements as json objects 
+	// with name and edge weight as the keys 
+	
+	for(var i=0; i<services_children[s_name].length; i++){
+		s_children.push(services_children[s_name][i][KEY_CHILDREN_NAME]);
+	}
+	
+	console.log("s_siblings ",s_siblings);
+	console.log("s_children ", s_children, '\n');
+	
+	if(s_children.length!=0){
+		if(s_siblings.length!=0){
+			for(var i=0; i<s_siblings.length; i++){
+				
+				// for the cousin: s_sibling[i] , find the contribution due to it's children
+				var cousin_children= [];
+				
+				for(var j=0; j<services_children[s_siblings[i]].length; j++){
+					cousin_children.push(services_children[s_siblings[i]][j][KEY_CHILDREN_NAME]);
+				}
+				
+				console.log("cousin_children ",cousin_children); 
+				if(cousin_children.length!=0){
+					for (var j=0; j<cousin_children.length; j++){
+						cousins_ra_re+= (services_owr[cousin_children[j]]*services_tv[cousin_children[j]]);
+						cousins_tv+= services_tv[cousin_children[j]];
+					}
+				}
 			}
-			
-		
 		}
-		
+		// The contribution from the children of the current 'ele' (node)
+		// i.e. the siblings 
 		for(var i=0; i<s_children.length; i++){
+			console.log("services owr ",services_owr[s_children[i]]);
+			console.log("services tv ",services_tv[s_children[i]]);
 			siblings_ra_re+= (services_owr[s_children[i]]*services_tv[s_children[i]]);
 			siblings_tv+= services_tv[s_children[i]];
 		} 
+		console.log("siblings_ra_re : ", siblings_ra_re);
+		console.log("siblings_tv : ", siblings_tv);
 		
+		// Combining the contribution with appropriate weights
 		s_uwr_children= ( (gamma1*siblings_ra_re) +(gamma2*cousins_ra_re));
 		s_uwr_children/= ( (gamma1*siblings_tv) +(gamma2*cousins_tv));
 		
-		console.log("s_uwr_children is : \n");
+		console.log("s_uwr_children is : \n"); 
 		console.log(s_uwr_children);
+		
 		for(var i=0; i<s_children.length; i++){
 			services_uwr[s_children[i]]=s_uwr_children;
 		} 
 	}
-	// update uwr 
+	else {
+		console.log("it has no children");
+	}
+	
+	// Update UWR of the current service element(node) in the database
 	clln.update(
 		{"name":ele}, 
 		{
@@ -389,10 +430,7 @@ function uwrCalcStep(clln, ele, callback) {
 		}
 	);
 	
-	
 }
-
-
 
 // Final task (same in all the examples)
 function onBFTraversalComplete(cb) { 
