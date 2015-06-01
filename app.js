@@ -101,6 +101,9 @@ var service_root;
 var queue =[];
 var services_children={};
 var services_siblings={};
+var services_tv={};
+var services_owr={};
+var services_uwr={};
 			
 //--------------------- helper methods
 
@@ -280,11 +283,13 @@ function bfTraversalStep(clln, ele, callback) {
 			}
 			s_owr/=s_t_votes;
 			console.log("s_t_votes is ", s_t_votes);
-			console.log("s_ownr is ",s_owr);
+			console.log("s_owr is ",s_owr);
 			
 			// update the local children and the siblings object
 			services_children[s_obj[KEY_NAME]]= s_obj[KEY_CHILDREN];
 			services_siblings[s_obj[KEY_NAME]]= s_obj[KEY_SIBLINGS];
+			services_owr[s_obj[KEY_NAME]]= s_owr;
+			services_tv[s_obj[KEY_NAME]]= s_t_votes;
 			
 			// loop for it's children and push them into the queue
 			var s_children = s_obj[KEY_CHILDREN];
@@ -315,21 +320,95 @@ function bfTraversalStep(clln, ele, callback) {
 	});
 }
 
+function uwrCalcStep(clln, ele, callback) {
+		
+	var s_uwr=0;
+	var s_name = ele;
+	var s_uwr_children=0;
+	// calculate uwr 
+	
+	if(s_name===service_root){
+		s_uwr=services_owr[s_name];
+		services_uwr[s_name]=s_uwr;
+		
+	}
+	else {
+		s_uwr= services_uwr[s_name];
+		console.log('\n s_uwr from the services array is \n');
+		console.log(s_uwr);
+	}
+	
+	var siblings_ra_re=0;
+	var siblings_tv=0;
+	var cousins_ra_re=0;
+	var cousins_tv=0;
+	var s_siblings=services_siblings[s_name];
+	var s_children = services_children[s_name];
+	
+	if(s_children.length!==0){
+		for(var i=0; i<s_siblings.length; i++){
+			if(s_siblings[i]===s_name)continue;
+			var cousin_children= services_children[s_siblings[i]];
+			
+			for (var j=0; j<cousin_children.length; j++){
+				cousins_ra_re+= (services_owr[cousin_children[i]]*services_tv[cousin_children[i]]);
+				cousins_tv+= services_tv[cousin_children[i]];
+			}
+			
+		
+		}
+		
+		for(var i=0; i<s_children.length; i++){
+			siblings_ra_re+= (services_owr[s_children[i]]*services_tv[s_children[i]]);
+			siblings_tv+= services_tv[s_children[i]];
+		} 
+		
+		s_uwr_children= ( (gamma1*siblings_ra_re) +(gamma2*cousins_ra_re));
+		s_uwr_children/= ( (gamma1*siblings_tv) +(gamma2*cousins_tv));
+		
+		console.log("s_uwr_children is : \n");
+		console.log(s_uwr_children);
+		for(var i=0; i<s_children.length; i++){
+			services_uwr[s_children[i]]=s_uwr_children;
+		} 
+	}
+	// update uwr 
+	clln.update(
+		{"name":ele}, 
+		{
+			$set:{
+				"universe_wmean_rating":s_uwr,
+			}
+		},
+		function (err, numUpdated){
+			if(err)callback(err);
+			else if (numUpdated!=0){
+				console.log("updating uwr values ");
+				callback(null, numUpdated); 
+			}
+		}
+	);
+	
+	
+}
+
+
+
 // Final task (same in all the examples)
 function onBFTraversalComplete(cb) { 
 	cb(null,'Done updating'); 
 }
 
 // A simple async bfTraversal:
-function bfTraversal(clln, element, cb) {
+function bfTraversal(clln, element, traversalStep, cb) {
   if(element) {
-	bfTraversalStep( clln, element, function(err, result) {
+	traversalStep( clln, element, function(err, result) {
 	  if(err){
 		cb(err);
 	  }
 	  else if (result!=null){
 		  console.log( "Records updated : ", result);
-		  return bfTraversal(clln, queue.shift(),cb);
+		  return bfTraversal(clln, queue.shift(),traversalStep, cb);
 	  }
 	});
   } else {
@@ -353,7 +432,7 @@ function updateTvAndOwr(clln, cb){
 			//bfs(queue, 
 
 			queue.push(service_root);
-			bfTraversal(clln, queue.shift(), function(err, result){
+			bfTraversal(clln, queue.shift(), bfTraversalStep, function(err, result){
 				if(err)cb(err);
 				else if(result!=null){
 					cb(null,result);
@@ -374,7 +453,23 @@ function updateOtherScores(clln, cb){
 	console.log(element_list);
 	console.log(services_children);
 	console.log(services_siblings);
-	cb(null, 'other scores are updated');
+	console.log(services_owr);
+	console.log(services_tv);
+	queue=[];
+	for(var i=0; i<element_list.length; i++){
+		queue.push(element_list[i]);
+	}
+	console.log(queue);
+	bfTraversal(clln, queue.shift(), uwrCalcStep, function (err,result){
+		if(err)cb(err);
+		else if(result!=null){
+			console.log("Updated uwr ratings for the tree");
+			//cb(result);
+			// update other scores - initialise queue and define another traversal step for that
+			cb(null, 'other scores are updated');
+		}
+	});	
+	
 	
 }
 
