@@ -104,6 +104,8 @@ var services_siblings={};
 var services_tv={};
 var services_owr={};
 var services_uwr={};
+var services_rtv={};
+var services_ars={};
 			
 //--------------------- helper methods
 
@@ -432,6 +434,73 @@ function uwrCalcStep(clln, ele, callback) {
 	
 }
 
+function remainingScoresCalcStep(clln, ele, callback) {
+	
+	
+	var s_name = ele;
+	var s_uwr=services_uwr[s_name];
+	var s_owr=services_owr[s_name];
+	var s_tv=services_tv[s_name];
+	
+	var s_ars=0;
+	var s_orc=0;
+	var s_crc=0;
+	var s_rtv=0;
+	var s_crc_num=0;
+	var s_crc_denom=0;
+	
+	var s_children=services_children[s_name];
+	var s_children_name=[];
+	var s_children_wt=[];
+	var s_num_children = s_children.length;
+	
+	for(var i=0; i<s_num_children; i++){
+		s_children_name.push(s_children[i][KEY_CHILDREN_NAME]);
+		s_children_wt.push(s_children[i][KEY_CHILDREN_WT]);
+	}
+	
+	s_orc= ((beta*s_owr)+((1-beta)*s_uwr));
+	s_rtv= s_tv;
+	if(s_num_children!=0){
+		for(var i=0; i<s_num_children; i++){
+			var s_child_name=s_children_name[i];
+			s_rtv+= (services_rtv[s_child_name]/2);
+			s_crc_num+= (services_ars[s_child_name]*services_rtv[s_child_name]*s_children_wt[i]);
+			s_crc_denom+= (services_rtv[s_child_name]*s_children_wt[i]);
+		} 
+		s_crc= s_crc_num/s_crc_denom;
+		s_ars= (alpha*s_orc) + ((1-alpha)*s_crc);
+	
+	}
+	else {
+		s_ars=s_orc;
+	}
+	
+	services_ars[s_name]=s_ars;
+	services_rtv[s_name]=s_rtv;	
+	
+	clln.update(
+		{"name":ele}, 
+		{
+			$set:{
+				"agg_rating_score":s_ars,
+				"own_rating_cont":s_orc,
+				"children_rating_cont":s_crc,
+				"rating_trust_value":s_rtv,
+			}
+		},
+		function (err, numUpdated){
+			if(err)callback(err);
+			else if (numUpdated!=0){
+				console.log("updating uwr values ");
+				callback(null, numUpdated); 
+			}
+		}
+	);
+	
+}
+
+
 // Final task (same in all the examples)
 function onBFTraversalComplete(cb) { 
 	cb(null,'Done updating'); 
@@ -486,7 +555,7 @@ function updateTvAndOwr(clln, cb){
 		}
 	});
 }
-function updateOtherScores(clln, cb){
+function updateUWR(clln, cb){
 	console.log('In function updateOtherScores: ');
 	console.log(element_list);
 	console.log(services_children);
@@ -501,7 +570,30 @@ function updateOtherScores(clln, cb){
 	bfTraversal(clln, queue.shift(), uwrCalcStep, function (err,result){
 		if(err)cb(err);
 		else if(result!=null){
-			console.log("Updated uwr ratings for the tree");
+			//cb(result);
+			// update other scores - initialise queue and define another traversal step for that
+			cb(null, 'UWR scores are updated');
+		}
+	});	
+	
+	
+}
+
+function updateRemainingScores(clln, cb){
+	console.log('In function updateRemainingScores: ');
+	
+	// Now traversal will be done from bottom to up
+	
+	queue=[];
+	for(var i=element_list.length-1; i>=0; i--){
+		queue.push(element_list[i]);
+	}
+	console.log(queue);
+	
+	bfTraversal(clln, queue.shift(), remainingScoresCalcStep, function (err,result){
+		if(err)cb(err);
+		else if(result!=null){
+			console.log("Updated remaning ratings for the tree");
 			//cb(result);
 			// update other scores - initialise queue and define another traversal step for that
 			cb(null, 'other scores are updated');
@@ -522,11 +614,18 @@ function aggregateFeedbackFromStart(clln, cb){
 			console.log(result);
 			
 			// update u_x and other scores for all other services
-			updateOtherScores(clln, function(err, result){
+			updateUWR(clln, function(err, result){
 				if(err)cb(err);
 				else if (result!=null){
+					console.log(result);
 					
-					cb(null, result);
+					updateRemainingScores(clln, function (err, result){
+						if (err)cb(err);
+						else if (result!=null){
+							console.log("Remaining scores also updated");
+							cb(null, result);
+						}
+					});
 				}
 			});
 				
