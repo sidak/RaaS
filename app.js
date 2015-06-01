@@ -90,6 +90,7 @@ var KEY_CRe="consumer_relevance";
 var KEY_RTV="rating_trust_value";
 var KEY_TV="trust_votes";
 var KEY_CHILDREN="children";
+var KEY_SIBLINGS="siblings";
 var KEY_PARENT="parent";
 var KEY_CHILDREN_NAME="name";
 var KEY_CHILDREN_WT="wt";
@@ -98,6 +99,8 @@ var KEY_CHILDREN_WT="wt";
 var element_list=[];				
 var service_root;
 var queue =[];
+var services_children={};
+var services_siblings={};
 			
 //--------------------- helper methods
 
@@ -134,7 +137,8 @@ function onConnectionEstablished(clln, cb){
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[{"name":"b1","wt":0.5},{"name":"b2","wt":0.5}],
-					"parent":[]
+					"parent":[],
+					"siblings":[]
 		
 				
 				},
@@ -150,8 +154,8 @@ function onConnectionEstablished(clln, cb){
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[{"name":"c1","wt":0.6},{"name":"c2","wt":0.4}],
-					"parent":["a"]
-		
+					"parent":["a"],
+					"siblings":["b2"]
 				
 				},
 				{	
@@ -166,8 +170,8 @@ function onConnectionEstablished(clln, cb){
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[{"name":"c3","wt":0.3},{"name":"c4","wt":0.7}],
-					"parent":["a"]
-		
+					"parent":["a"],
+					"siblings":["b1"]
 				
 				},	
 				{
@@ -182,7 +186,8 @@ function onConnectionEstablished(clln, cb){
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[],
-					"parent":["b1"]
+					"parent":["b1"],
+					"siblings":["c2"]
 	
 				
 				},
@@ -198,7 +203,8 @@ function onConnectionEstablished(clln, cb){
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[],
-					"parent":["b1"]
+					"parent":["b1"],
+					"siblings":["c1"]
 		
 				
 				},
@@ -214,7 +220,8 @@ function onConnectionEstablished(clln, cb){
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[],
-					"parent":["b2"]
+					"parent":["b2"],
+					"siblings":["c4"]
 		
 				
 				},
@@ -230,7 +237,8 @@ function onConnectionEstablished(clln, cb){
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[],
-					"parent":["b2"]
+					"parent":["b2"],
+					"siblings":["c3"]
 			
 					
 				}
@@ -273,6 +281,11 @@ function bfTraversalStep(clln, ele, callback) {
 			s_owr/=s_t_votes;
 			console.log("s_t_votes is ", s_t_votes);
 			console.log("s_ownr is ",s_owr);
+			
+			// update the local children and the siblings object
+			services_children[s_obj[KEY_NAME]]= s_obj[KEY_CHILDREN];
+			services_siblings[s_obj[KEY_NAME]]= s_obj[KEY_SIBLINGS];
+			
 			// loop for it's children and push them into the queue
 			var s_children = s_obj[KEY_CHILDREN];
 			for(var i=0; i<s_children.length; i++){
@@ -358,8 +371,14 @@ function updateTvAndOwr(clln, cb){
 }
 function updateOtherScores(clln, cb){
 	console.log('In function updateOtherScores: ');
+	console.log(element_list);
+	console.log(services_children);
+	console.log(services_siblings);
 	cb(null, 'other scores are updated');
+	
 }
+
+// TODO: aggregate feedback from the last saved point 
 
 function aggregateFeedbackFromStart(clln, cb){
 	console.log('In function aggregateFeedbackFromStart: ');
