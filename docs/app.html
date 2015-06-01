@@ -277,6 +277,7 @@ no stacktraces leaked to user</p>
 <span class="hljs-keyword">var</span> KEY_RTV=<span class="hljs-string">"rating_trust_value"</span>;
 <span class="hljs-keyword">var</span> KEY_TV=<span class="hljs-string">"trust_votes"</span>;
 <span class="hljs-keyword">var</span> KEY_CHILDREN=<span class="hljs-string">"children"</span>;
+<span class="hljs-keyword">var</span> KEY_SIBLINGS=<span class="hljs-string">"siblings"</span>;
 <span class="hljs-keyword">var</span> KEY_PARENT=<span class="hljs-string">"parent"</span>;
 <span class="hljs-keyword">var</span> KEY_CHILDREN_NAME=<span class="hljs-string">"name"</span>;
 <span class="hljs-keyword">var</span> KEY_CHILDREN_WT=<span class="hljs-string">"wt"</span>;</pre></div></div>
@@ -296,7 +297,14 @@ no stacktraces leaked to user</p>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> element_list=[];				
 <span class="hljs-keyword">var</span> service_root;
-<span class="hljs-keyword">var</span> queue =[];</pre></div></div>
+<span class="hljs-keyword">var</span> queue =[];
+<span class="hljs-keyword">var</span> services_children={};
+<span class="hljs-keyword">var</span> services_siblings={};
+<span class="hljs-keyword">var</span> services_tv={};
+<span class="hljs-keyword">var</span> services_owr={};
+<span class="hljs-keyword">var</span> services_uwr={};
+<span class="hljs-keyword">var</span> services_rtv={};
+<span class="hljs-keyword">var</span> services_ars={};</pre></div></div>
             
         </li>
         
@@ -356,7 +364,8 @@ no stacktraces leaked to user</p>
 					<span class="hljs-string">"rating_trust_value"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"trust_votes"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"children"</span>:[{<span class="hljs-string">"name"</span>:<span class="hljs-string">"b1"</span>,<span class="hljs-string">"wt"</span>:<span class="hljs-number">0.5</span>},{<span class="hljs-string">"name"</span>:<span class="hljs-string">"b2"</span>,<span class="hljs-string">"wt"</span>:<span class="hljs-number">0.5</span>}],
-					<span class="hljs-string">"parent"</span>:[]
+					<span class="hljs-string">"parent"</span>:[],
+					<span class="hljs-string">"siblings"</span>:[]
 		
 				
 				},
@@ -372,8 +381,8 @@ no stacktraces leaked to user</p>
 					<span class="hljs-string">"rating_trust_value"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"trust_votes"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"children"</span>:[{<span class="hljs-string">"name"</span>:<span class="hljs-string">"c1"</span>,<span class="hljs-string">"wt"</span>:<span class="hljs-number">0.6</span>},{<span class="hljs-string">"name"</span>:<span class="hljs-string">"c2"</span>,<span class="hljs-string">"wt"</span>:<span class="hljs-number">0.4</span>}],
-					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"a"</span>]
-		
+					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"a"</span>],
+					<span class="hljs-string">"siblings"</span>:[<span class="hljs-string">"b2"</span>]
 				
 				},
 				{	
@@ -388,8 +397,8 @@ no stacktraces leaked to user</p>
 					<span class="hljs-string">"rating_trust_value"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"trust_votes"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"children"</span>:[{<span class="hljs-string">"name"</span>:<span class="hljs-string">"c3"</span>,<span class="hljs-string">"wt"</span>:<span class="hljs-number">0.3</span>},{<span class="hljs-string">"name"</span>:<span class="hljs-string">"c4"</span>,<span class="hljs-string">"wt"</span>:<span class="hljs-number">0.7</span>}],
-					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"a"</span>]
-		
+					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"a"</span>],
+					<span class="hljs-string">"siblings"</span>:[<span class="hljs-string">"b1"</span>]
 				
 				},	
 				{
@@ -404,7 +413,8 @@ no stacktraces leaked to user</p>
 					<span class="hljs-string">"rating_trust_value"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"trust_votes"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"children"</span>:[],
-					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"b1"</span>]
+					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"b1"</span>],
+					<span class="hljs-string">"siblings"</span>:[<span class="hljs-string">"c2"</span>]
 	
 				
 				},
@@ -420,7 +430,8 @@ no stacktraces leaked to user</p>
 					<span class="hljs-string">"rating_trust_value"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"trust_votes"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"children"</span>:[],
-					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"b1"</span>]
+					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"b1"</span>],
+					<span class="hljs-string">"siblings"</span>:[<span class="hljs-string">"c1"</span>]
 		
 				
 				},
@@ -436,7 +447,8 @@ no stacktraces leaked to user</p>
 					<span class="hljs-string">"rating_trust_value"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"trust_votes"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"children"</span>:[],
-					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"b2"</span>]
+					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"b2"</span>],
+					<span class="hljs-string">"siblings"</span>:[<span class="hljs-string">"c4"</span>]
 		
 				
 				},
@@ -452,7 +464,8 @@ no stacktraces leaked to user</p>
 					<span class="hljs-string">"rating_trust_value"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"trust_votes"</span>:-<span class="hljs-number">1</span>,
 					<span class="hljs-string">"children"</span>:[],
-					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"b2"</span>]
+					<span class="hljs-string">"parent"</span>:[<span class="hljs-string">"b2"</span>],
+					<span class="hljs-string">"siblings"</span>:[<span class="hljs-string">"c3"</span>]
 			
 					
 				}
@@ -532,7 +545,7 @@ otherwise the code will be a blocking code</p>
 			}
 			s_owr/=s_t_votes;
 			<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"s_t_votes is "</span>, s_t_votes);
-			<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"s_ownr is "</span>,s_owr);</pre></div></div>
+			<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"s_owr is "</span>,s_owr);</pre></div></div>
             
         </li>
         
@@ -542,6 +555,24 @@ otherwise the code will be a blocking code</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>update the local children and the siblings object</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			services_children[s_obj[KEY_NAME]]= s_obj[KEY_CHILDREN];
+			services_siblings[s_obj[KEY_NAME]]= s_obj[KEY_SIBLINGS];
+			services_owr[s_obj[KEY_NAME]]= s_owr;
+			services_tv[s_obj[KEY_NAME]]= s_t_votes;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <p>loop for it’s children and push them into the queue</p>
 
@@ -556,11 +587,11 @@ otherwise the code will be a blocking code</p>
         </li>
         
         
-        <li id="section-22">
+        <li id="section-23">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
               <p>update tx and r(x)</p>
 
@@ -585,24 +616,9 @@ otherwise the code will be a blocking code</p>
 			
 		}
 	});
-}</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-23">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
-              </div>
-              <p>Final task (same in all the examples)</p>
+}
 
-            </div>
-            
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">onBFTraversalComplete</span>(<span class="hljs-params">cb</span>) </span>{ 
-	cb(<span class="hljs-literal">null</span>,<span class="hljs-string">'Done updating'</span>); 
-}</pre></div></div>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">uwrCalcStep</span>(<span class="hljs-params">clln, ele, callback</span>) </span>{</pre></div></div>
             
         </li>
         
@@ -613,19 +629,311 @@ otherwise the code will be a blocking code</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
-              <p>A simple async bfTraversal:</p>
+              <p>Update the value of Universe Weighted Mean 
+Rating U(x) , for the node/service element ‘ele’
+And also calculate the value of the    U(x) for it’s children 
+and save it for use by them during the traversal</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">bfTraversal</span>(<span class="hljs-params">clln, element, cb</span>) </span>{
+            <div class="content"><div class='highlight'><pre>	
+	<span class="hljs-keyword">var</span> s_uwr=<span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> s_name = ele;
+	<span class="hljs-keyword">var</span> s_uwr_children=<span class="hljs-number">0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>If the node is root then U(x) = R(x)
+i.e, Universe Weighted Mean Rating is equal to
+Own Weighted Mean Rating for the node
+Otherwise get it from the services_uwr object</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	
+	<span class="hljs-keyword">if</span>(s_name===service_root){
+		s_uwr=services_owr[s_name];
+		services_uwr[s_name]=s_uwr;
+		
+	}
+	<span class="hljs-keyword">else</span> {
+		s_uwr= services_uwr[s_name];
+		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'\n s_uwr from the services array is \n'</span>);
+		<span class="hljs-built_in">console</span>.log(s_uwr);
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>Calculation of UWR for the child nodes 
+UWR involves the contribution from the siblings 
+with weight as gamma1 and from the cousins
+with weight gamma2</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	
+	<span class="hljs-keyword">var</span> siblings_ra_re=<span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> siblings_tv=<span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> cousins_ra_re=<span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> cousins_tv=<span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> s_children=[];
+	<span class="hljs-keyword">var</span> s_siblings=services_siblings[s_name];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>The services_children array has children elements as json objects 
+with name and edge weight as the keys </p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	
+	<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i=<span class="hljs-number">0</span>; i&lt;services_children[s_name].length; i++){
+		s_children.push(services_children[s_name][i][KEY_CHILDREN_NAME]);
+	}
+	
+	<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"s_siblings "</span>,s_siblings);
+	<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"s_children "</span>, s_children, <span class="hljs-string">'\n'</span>);
+	
+	<span class="hljs-keyword">if</span>(s_children.length!=<span class="hljs-number">0</span>){
+		<span class="hljs-keyword">if</span>(s_siblings.length!=<span class="hljs-number">0</span>){
+			<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i=<span class="hljs-number">0</span>; i&lt;s_siblings.length; i++){</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>for the cousin: s_sibling[i] , find the contribution due to it’s children</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">var</span> cousin_children= [];
+				
+				<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> j=<span class="hljs-number">0</span>; j&lt;services_children[s_siblings[i]].length; j++){
+					cousin_children.push(services_children[s_siblings[i]][j][KEY_CHILDREN_NAME]);
+				}
+				
+				<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"cousin_children "</span>,cousin_children); 
+				<span class="hljs-keyword">if</span>(cousin_children.length!=<span class="hljs-number">0</span>){
+					<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j=<span class="hljs-number">0</span>; j&lt;cousin_children.length; j++){
+						cousins_ra_re+= (services_owr[cousin_children[j]]*services_tv[cousin_children[j]]);
+						cousins_tv+= services_tv[cousin_children[j]];
+					}
+				}
+			}
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>The contribution from the children of the current ‘ele’ (node)
+i.e. the siblings </p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i=<span class="hljs-number">0</span>; i&lt;s_children.length; i++){
+			<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"services owr "</span>,services_owr[s_children[i]]);
+			<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"services tv "</span>,services_tv[s_children[i]]);
+			siblings_ra_re+= (services_owr[s_children[i]]*services_tv[s_children[i]]);
+			siblings_tv+= services_tv[s_children[i]];
+		} 
+		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"siblings_ra_re : "</span>, siblings_ra_re);
+		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"siblings_tv : "</span>, siblings_tv);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>Combining the contribution with appropriate weights</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		s_uwr_children= ( (gamma1*siblings_ra_re) +(gamma2*cousins_ra_re));
+		s_uwr_children/= ( (gamma1*siblings_tv) +(gamma2*cousins_tv));
+		
+		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"s_uwr_children is : \n"</span>); 
+		<span class="hljs-built_in">console</span>.log(s_uwr_children);
+		
+		<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i=<span class="hljs-number">0</span>; i&lt;s_children.length; i++){
+			services_uwr[s_children[i]]=s_uwr_children;
+		} 
+	}
+	<span class="hljs-keyword">else</span> {
+		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"it has no children"</span>);
+	}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>Update UWR of the current service element(node) in the database</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	clln.update(
+		{<span class="hljs-string">"name"</span>:ele}, 
+		{
+			$set:{
+				<span class="hljs-string">"universe_wmean_rating"</span>:s_uwr,
+			}
+		},
+		<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, numUpdated</span>)</span>{
+			<span class="hljs-keyword">if</span>(err)callback(err);
+			<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (numUpdated!=<span class="hljs-number">0</span>){
+				<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"updating uwr values "</span>);
+				callback(<span class="hljs-literal">null</span>, numUpdated); 
+			}
+		}
+	);
+	
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">remainingScoresCalcStep</span>(<span class="hljs-params">clln, ele, callback</span>) </span>{
+	
+	
+	<span class="hljs-keyword">var</span> s_name = ele;
+	<span class="hljs-keyword">var</span> s_uwr=services_uwr[s_name];
+	<span class="hljs-keyword">var</span> s_owr=services_owr[s_name];
+	<span class="hljs-keyword">var</span> s_tv=services_tv[s_name];
+	
+	<span class="hljs-keyword">var</span> s_ars=<span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> s_orc=<span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> s_crc=<span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> s_rtv=<span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> s_crc_num=<span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> s_crc_denom=<span class="hljs-number">0</span>;
+	
+	<span class="hljs-keyword">var</span> s_children=services_children[s_name];
+	<span class="hljs-keyword">var</span> s_children_name=[];
+	<span class="hljs-keyword">var</span> s_children_wt=[];
+	<span class="hljs-keyword">var</span> s_num_children = s_children.length;
+	
+	<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i=<span class="hljs-number">0</span>; i&lt;s_num_children; i++){
+		s_children_name.push(s_children[i][KEY_CHILDREN_NAME]);
+		s_children_wt.push(s_children[i][KEY_CHILDREN_WT]);
+	}
+	
+	s_orc= ((beta*s_owr)+((<span class="hljs-number">1</span>-beta)*s_uwr));
+	s_rtv= s_tv;
+	<span class="hljs-keyword">if</span>(s_num_children!=<span class="hljs-number">0</span>){
+		<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i=<span class="hljs-number">0</span>; i&lt;s_num_children; i++){
+			<span class="hljs-keyword">var</span> s_child_name=s_children_name[i];
+			s_rtv+= (services_rtv[s_child_name]/<span class="hljs-number">2</span>);
+			s_crc_num+= (services_ars[s_child_name]*services_rtv[s_child_name]*s_children_wt[i]);
+			s_crc_denom+= (services_rtv[s_child_name]*s_children_wt[i]);
+		} 
+		s_crc= s_crc_num/s_crc_denom;
+		s_ars= (alpha*s_orc) + ((<span class="hljs-number">1</span>-alpha)*s_crc);
+	
+	}
+	<span class="hljs-keyword">else</span> {
+		s_ars=s_orc;
+	}
+	
+	services_ars[s_name]=s_ars;
+	services_rtv[s_name]=s_rtv;	
+	
+	clln.update(
+		{<span class="hljs-string">"name"</span>:ele}, 
+		{
+			$set:{
+				<span class="hljs-string">"agg_rating_score"</span>:s_ars,
+				<span class="hljs-string">"own_rating_cont"</span>:s_orc,
+				<span class="hljs-string">"children_rating_cont"</span>:s_crc,
+				<span class="hljs-string">"rating_trust_value"</span>:s_rtv,
+			}
+		},
+		<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, numUpdated</span>)</span>{
+			<span class="hljs-keyword">if</span>(err)callback(err);
+			<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (numUpdated!=<span class="hljs-number">0</span>){
+				<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"updating uwr values "</span>);
+				callback(<span class="hljs-literal">null</span>, numUpdated); 
+			}
+		}
+	);
+	
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>Final task for traversal</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">onBFTraversalComplete</span>(<span class="hljs-params">cb</span>) </span>{ 
+	cb(<span class="hljs-literal">null</span>,<span class="hljs-string">'Done updating'</span>); 
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>A general async bfTraversal:</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">bfTraversal</span>(<span class="hljs-params">clln, element, traversalStep, cb</span>) </span>{
   <span class="hljs-keyword">if</span>(element) {
-	bfTraversalStep( clln, element, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>) </span>{
+	traversalStep( clln, element, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>) </span>{
 	  <span class="hljs-keyword">if</span>(err){
 		cb(err);
 	  }
 	  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (result!=<span class="hljs-literal">null</span>){
 		  <span class="hljs-built_in">console</span>.log( <span class="hljs-string">"Records updated : "</span>, result);
-		  <span class="hljs-keyword">return</span> bfTraversal(clln, queue.shift(),cb);
+		  <span class="hljs-keyword">return</span> bfTraversal(clln, queue.shift(),traversalStep, cb);
 	  }
 	});
   } <span class="hljs-keyword">else</span> {
@@ -648,11 +956,11 @@ otherwise the code will be a blocking code</p>
         </li>
         
         
-        <li id="section-25">
+        <li id="section-34">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
+                <a class="pilcrow" href="#section-34">&#182;</a>
               </div>
               <p>do bfs from (root) and then do a reverse bfs<br>bfs(queue, </p>
 
@@ -660,7 +968,7 @@ otherwise the code will be a blocking code</p>
             
             <div class="content"><div class='highlight'><pre>
 			queue.push(service_root);
-			bfTraversal(clln, queue.shift(), <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>)</span>{
+			bfTraversal(clln, queue.shift(), bfTraversalStep, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>)</span>{
 				<span class="hljs-keyword">if</span>(err)cb(err);
 				<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(result!=<span class="hljs-literal">null</span>){
 					cb(<span class="hljs-literal">null</span>,result);
@@ -670,11 +978,11 @@ otherwise the code will be a blocking code</p>
         </li>
         
         
-        <li id="section-26">
+        <li id="section-35">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
+                <a class="pilcrow" href="#section-35">&#182;</a>
               </div>
               <p>Async task corresponding to a breadth first traversal
 Read a service , update it’s trust votes and own weighted rating
@@ -685,11 +993,11 @@ and at last append it’s children services to the queue</p>
         </li>
         
         
-        <li id="section-27">
+        <li id="section-36">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-27">&#182;</a>
+                <a class="pilcrow" href="#section-36">&#182;</a>
               </div>
               <p>TODO: Also check out that keys are not working when used in form of constants</p>
 
@@ -699,11 +1007,106 @@ and at last append it’s children services to the queue</p>
 		}
 	});
 }
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">updateOtherScores</span>(<span class="hljs-params">clln, cb</span>)</span>{
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">updateUWR</span>(<span class="hljs-params">clln, cb</span>)</span>{
 	<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'In function updateOtherScores: '</span>);
-	cb(<span class="hljs-literal">null</span>, <span class="hljs-string">'other scores are updated'</span>);
+	<span class="hljs-built_in">console</span>.log(element_list);
+	<span class="hljs-built_in">console</span>.log(services_children);
+	<span class="hljs-built_in">console</span>.log(services_siblings);
+	<span class="hljs-built_in">console</span>.log(services_owr);
+	<span class="hljs-built_in">console</span>.log(services_tv);
+	queue=[];
+	<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i=<span class="hljs-number">0</span>; i&lt;element_list.length; i++){
+		queue.push(element_list[i]);
+	}
+	<span class="hljs-built_in">console</span>.log(queue);
+	bfTraversal(clln, queue.shift(), uwrCalcStep, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err,result</span>)</span>{
+		<span class="hljs-keyword">if</span>(err)cb(err);
+		<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(result!=<span class="hljs-literal">null</span>){</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>cb(result);
+update other scores - initialise queue and define another traversal step for that</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			cb(<span class="hljs-literal">null</span>, <span class="hljs-string">'UWR scores are updated'</span>);
+		}
+	});	
+	
+	
 }
 
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">updateRemainingScores</span>(<span class="hljs-params">clln, cb</span>)</span>{
+	<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'In function updateRemainingScores: '</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <p>Now traversal will be done from bottom to up</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	
+	queue=[];
+	<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i=element_list.length-<span class="hljs-number">1</span>; i&gt;=<span class="hljs-number">0</span>; i--){
+		queue.push(element_list[i]);
+	}
+	<span class="hljs-built_in">console</span>.log(queue);
+	
+	bfTraversal(clln, queue.shift(), remainingScoresCalcStep, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err,result</span>)</span>{
+		<span class="hljs-keyword">if</span>(err)cb(err);
+		<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(result!=<span class="hljs-literal">null</span>){
+			<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Updated remaning ratings for the tree"</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-39">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-39">&#182;</a>
+              </div>
+              <p>cb(result);
+update other scores - initialise queue and define another traversal step for that</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			cb(<span class="hljs-literal">null</span>, <span class="hljs-string">'other scores are updated'</span>);
+		}
+	});	
+	
+	
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-40">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-40">&#182;</a>
+              </div>
+              <p>TODO: aggregate feedback from the last saved point </p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">aggregateFeedbackFromStart</span>(<span class="hljs-params">clln, cb</span>)</span>{
 	<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'In function aggregateFeedbackFromStart: '</span>);
 	updateTvAndOwr(clln, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>)</span>{
@@ -715,21 +1118,28 @@ and at last append it’s children services to the queue</p>
         </li>
         
         
-        <li id="section-28">
+        <li id="section-41">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-28">&#182;</a>
+                <a class="pilcrow" href="#section-41">&#182;</a>
               </div>
               <p>update u_x and other scores for all other services</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>			updateOtherScores(clln, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>)</span>{
+            <div class="content"><div class='highlight'><pre>			updateUWR(clln, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, result</span>)</span>{
 				<span class="hljs-keyword">if</span>(err)cb(err);
 				<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (result!=<span class="hljs-literal">null</span>){
+					<span class="hljs-built_in">console</span>.log(result);
 					
-					cb(<span class="hljs-literal">null</span>, result);
+					updateRemainingScores(clln, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, result</span>)</span>{
+						<span class="hljs-keyword">if</span> (err)cb(err);
+						<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (result!=<span class="hljs-literal">null</span>){
+							<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Remaining scores also updated"</span>);
+							cb(<span class="hljs-literal">null</span>, result);
+						}
+					});
 				}
 			});
 				
@@ -740,11 +1150,11 @@ and at last append it’s children services to the queue</p>
         </li>
         
         
-        <li id="section-29">
+        <li id="section-42">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-29">&#182;</a>
+                <a class="pilcrow" href="#section-42">&#182;</a>
               </div>
               <hr>
 
@@ -753,11 +1163,11 @@ and at last append it’s children services to the queue</p>
         </li>
         
         
-        <li id="section-30">
+        <li id="section-43">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-30">&#182;</a>
+                <a class="pilcrow" href="#section-43">&#182;</a>
               </div>
               
             </div>

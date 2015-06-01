@@ -501,12 +501,12 @@ function remainingScoresCalcStep(clln, ele, callback) {
 }
 
 
-// Final task (same in all the examples)
+// Final task for traversal
 function onBFTraversalComplete(cb) { 
 	cb(null,'Done updating'); 
 }
 
-// A simple async bfTraversal:
+// A general async bfTraversal:
 function bfTraversal(clln, element, traversalStep, cb) {
   if(element) {
 	traversalStep( clln, element, function(err, result) {
