@@ -9,6 +9,8 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 // The json data for the service tree
 var service_data = require('./sample_data/paper_example');
+var redis_data = require('./sample_data/new_feedback');
+
 var app = express();
 
 // ----------------------------------------------------
@@ -90,6 +92,7 @@ var KEY_OWR="own_wmean_rating";
 var KEY_UWR="universe_wmean_rating";
 var KEY_CRa="consumer_ratings";
 var KEY_CRe="consumer_relevance";
+var KEY_CFCt="consumer_feedback_count";
 var KEY_RTV="rating_trust_value";
 var KEY_TV="trust_votes";
 var KEY_CHILDREN="children";
@@ -97,6 +100,7 @@ var KEY_SIBLINGS="siblings";
 var KEY_PARENT="parent";
 var KEY_CHILDREN_NAME="name";
 var KEY_CHILDREN_WT="wt";
+
 
 //------------------ global variables
 var element_list=[];				
@@ -134,7 +138,7 @@ function onConnectionEstablished(clln, cb){
 		}
 	});
 }
-function updateTvAndOwrStep(clln, ele, callback) {
+function updateStepFromStart(clln, ele, callback) {
 	element_list.push(ele);
 	// read the ele from db
 	getJsonObjectByNameFromDB( clln, ele, function(err, result){
@@ -415,7 +419,7 @@ function bfTraversal(clln, element, traversalStep, cb) {
   }
 }
 			
-function updateTvAndOwr(clln, cb){
+function updateTvAndOwr(clln, updateTvAndOwrStep, cb){
 	
 	console.log(" In function updateTvAndOwr : now finding one doc \n\n");
 			
@@ -446,6 +450,72 @@ function updateTvAndOwr(clln, cb){
 		}
 	});
 }
+
+function updateStepFromNewFeedback(clln, ele, callback) {
+	
+	// get data from redis cache suppose that 
+	var s_new_obj= redis_data[ele];
+	var s_new_t_votes= 0;
+	var s_new_relevance= s_new_obj[KEY_CRe];
+	
+	// TODO:	it's better to process these in batches or some units of feedback
+	// otherwise the code will be a blocking code
+	
+	for(var i=0; i<s_new_relevance.length;i++){
+		s_new_t_votes+=s_new_relevance[i];
+	}
+	var s_new_ratings=s_new_obj[KEY_CRa];
+	var s_new_owr=0;
+	for(var i=0; i<s_ratings.length;i++){
+		s_new_owr+=(s_ratings[i]*s_relevance[i]);
+	}
+	var s_old_t_votes=services_tv[ele];
+	var s_t_votes= s_new_t_votes+s_old_t_votes;
+	var s_old_owr=services_owr[ele]*services_tv[ele];
+	s_owr= s_new_owr+s_old_owr;
+	s_owr/=s_t_votes;
+	console.log("s_t_votes is ", s_t_votes);
+	console.log("s_owr is ",s_owr);
+	
+	
+	services_owr[ele]= s_owr;
+	services_tv[ele]= s_t_votes;
+	
+	
+	// loop for it's children and push them into the queue
+	var s_children = s_new_obj[KEY_CHILDREN];
+	var s_num_children= s_children.length;
+	
+	for(var i=0; i<s_num_children; i++){
+		var s_child = s_children[i];
+		queue.push(s_child[KEY_CHILDREN_NAME]);
+	}
+	
+	// update tx and r(x)
+	clln.update(
+		{"name":ele}, 
+		{
+			$set:{
+				
+				"own_wmean_rating":s_owr,
+				"trust_votes":s_t_votes,
+				"consumer_ratings":s_new_ratings,
+				"consumer_relevance":s_new_relevance
+			}
+		},
+		function (err, numUpdated){
+			if(err)callback(err);
+			else if (numUpdated!=0){
+				callback(null, numUpdated); 
+			}
+		}
+	);
+	
+	
+}
+
+
+
 function updateUWR(clln, cb){
 	console.log('In function updateOtherScores: ');
 	console.log(element_list);
@@ -496,9 +566,9 @@ function updateRemainingScores(clln, cb){
 
 // TODO: aggregate feedback from the last saved point 
 
-function aggregateFeedbackFromStart(clln, cb){
-	console.log('In function aggregateFeedbackFromStart: ');
-	updateTvAndOwr(clln, function(err, result){
+function aggregateFeedback(clln, updateTvAndOwrStep, cb){
+	console.log('In function aggregateFeedback: ');
+	updateTvAndOwr(clln, updateTvAndOwrStep, function(err, result){
 		if(err)cb(err);
 		else if (result!=null){
 			
@@ -598,6 +668,7 @@ function addChildService(clln, parent, name, edge_wt, cb ){
 	);
 	
 } 
+
 //------------------
 mongoClient.connect(url, function(err, db){
 	if(err) console.log("there was an error: " ,err);
@@ -611,7 +682,7 @@ mongoClient.connect(url, function(err, db){
 			else if (result!=null){
 				
 				console.log(result); // intermediate result
-				aggregateFeedbackFromStart(clln, function(err, result){
+				aggregateFeedback(clln, updateStepFromStart, function(err, result){
 					if(err)console.log(err);
 					else if (result!=null){
 						
@@ -620,7 +691,13 @@ mongoClient.connect(url, function(err, db){
 							if(err)console.log(err);
 							else if (result!=null){
 								console.log(result);
-								db.close();
+								aggregateFeedback(clln, updateStepFromNewFeedback, function (err, result){
+									if(err)console.log(err);
+									else if(result!=null){
+										console.log(result);
+										db.close();
+									}
+								});
 					
 							}
 						});
