@@ -8,3 +8,6 @@ data/
 
 # npm log for debugging
 npm-debug.log
+
+# for output file
+out.txt
