@@ -2,8 +2,8 @@ var data = [
 				{ 
 					name:"meta",						
 					root:"a",
-					numServices:7,
-					serviceNames:["a","b1","b2","c1","c2","c3","c4"]					
+					//numServices:7,
+					//serviceNames:["a","b1","b2","c1","c2","c3","c4"]					
 				},
 				{
 					"name":"a",
@@ -17,8 +17,8 @@ var data = [
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[{"name":"b1","wt":0.5},{"name":"b2","wt":0.5}],
-					"parent":[],
-					"siblings":[]
+					"parent":[]
+					//"siblings":[]
 		
 				
 				},
@@ -34,8 +34,8 @@ var data = [
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[{"name":"c1","wt":0.6},{"name":"c2","wt":0.4}],
-					"parent":["a"],
-					"siblings":["b2"]
+					"parent":["a"]
+					//"siblings":["b2"]
 				
 				},
 				{	
@@ -50,8 +50,8 @@ var data = [
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[{"name":"c3","wt":0.3},{"name":"c4","wt":0.7}],
-					"parent":["a"],
-					"siblings":["b1"]
+					"parent":["a"]
+					//"siblings":["b1"]
 				
 				},	
 				{
@@ -66,8 +66,8 @@ var data = [
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[],
-					"parent":["b1"],
-					"siblings":["c2"]
+					"parent":["b1"]
+					//"siblings":["c2"]
 	
 				
 				},
@@ -83,8 +83,8 @@ var data = [
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[],
-					"parent":["b1"],
-					"siblings":["c1"]
+					"parent":["b1"]
+					//"siblings":["c1"]
 		
 				
 				},
@@ -100,8 +100,8 @@ var data = [
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[],
-					"parent":["b2"],
-					"siblings":["c4"]
+					"parent":["b2"]
+					//"siblings":["c4"]
 		
 				
 				},
@@ -117,8 +117,8 @@ var data = [
 					"rating_trust_value":-1,
 					"trust_votes":-1,
 					"children":[],
-					"parent":["b2"],
-					"siblings":["c3"]
+					"parent":["b2"]
+					//"siblings":["c3"]
 			
 					
 				}

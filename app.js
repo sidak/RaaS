@@ -74,8 +74,10 @@ module.exports = app;
 
 var alpha = 0.6;
 var beta = 0.5;
-var gamma1 = 0.75; // for siblings
-var gamma2 = 0.25; // for cousins
+var gamma1 = 0.75; 
+// for siblings
+var gamma2 = 0.25; 
+// for cousins
 
 //---------------------- CONSTANTS---------------
 
@@ -132,7 +134,7 @@ function onConnectionEstablished(clln, cb){
 		}
 	});
 }
-function bfTraversalStep(clln, ele, callback) {
+function updateTvAndOwrStep(clln, ele, callback) {
 	element_list.push(ele);
 	// read the ele from db
 	getJsonObjectByNameFromDB( clln, ele, function(err, result){
@@ -160,18 +162,35 @@ function bfTraversalStep(clln, ele, callback) {
 			console.log("s_t_votes is ", s_t_votes);
 			console.log("s_owr is ",s_owr);
 			
-			// update the local children and the siblings object
+			// update the local children, owr, tv object
 			services_children[s_obj[KEY_NAME]]= s_obj[KEY_CHILDREN];
-			services_siblings[s_obj[KEY_NAME]]= s_obj[KEY_SIBLINGS];
 			services_owr[s_obj[KEY_NAME]]= s_owr;
 			services_tv[s_obj[KEY_NAME]]= s_t_votes;
 			
+			
+			// update the local siblings object
+			var s_parent = s_obj[KEY_PARENT];
+			var s_parent_children;
+			var s_siblings=[];
+			if(s_parent.length!=0){
+				s_parent_children=services_children[s_parent[0]];
+				for(var i=0; i<s_parent_children.length; i++){
+					if(s_parent_children[i][KEY_CHILDREN_NAME]!=s_obj[KEY_NAME]){
+						s_siblings.push(s_parent_children[i][KEY_CHILDREN_NAME]);
+					}
+				}
+			}
+			
 			// loop for it's children and push them into the queue
 			var s_children = s_obj[KEY_CHILDREN];
-			for(var i=0; i<s_children.length; i++){
+			var s_num_children= s_children.length;
+			
+			for(var i=0; i<s_num_children; i++){
 				var s_child = s_children[i];
 				queue.push(s_child[KEY_CHILDREN_NAME]);
 			}
+			
+			services_siblings[s_obj[KEY_NAME]]= s_siblings;
 			
 			// update tx and r(x)
 			clln.update(
@@ -407,12 +426,11 @@ function updateTvAndOwr(clln, cb){
 			console.log("the root is ", service_root);
 			console.log("\n the metadata is \n");					
 			console.log(result);
-			
 			// do bfs from (root) and then do a reverse bfs  
 			//bfs(queue, 
 
 			queue.push(service_root);
-			bfTraversal(clln, queue.shift(), bfTraversalStep, function(err, result){
+			bfTraversal(clln, queue.shift(), updateTvAndOwrStep, function(err, result){
 				if(err)cb(err);
 				else if(result!=null){
 					cb(null,result);
@@ -505,6 +523,81 @@ function aggregateFeedbackFromStart(clln, cb){
 		}
 	});
 }
+function createNewServiceObject(parent, name){
+	var obj = {
+					"name":name,
+					"agg_rating_score":-1,
+					"own_rating_cont":-1,
+					"children_rating_cont":-1,
+					"own_wmean_rating":-1,						
+					"universe_wmean_rating":-1,
+					"consumer_ratings":[],
+					"consumer_relevance":[],
+					"rating_trust_value":-1,
+					"trust_votes":-1,
+					"children":[],
+					"parent":[parent]
+			}
+	return obj;
+}
+function onParentUpdated(clln, parent, name,cb){
+	
+	var new_child = createNewServiceObject(parent, name);
+	
+	clln.insert(new_child, function(err, result){
+		if(err)cb(err);
+		else {
+			cb(null, 'Results of insertion are \n'+result);
+		}
+	});
+	
+}
+function addChildService(clln, parent, name, edge_wt, cb ){	
+	
+	// update the parent's children array with the name and the edge wt of child
+	// in the database
+	// update the local service_childen object for the parent and also init to [] for the new one
+	// update the local service_siblings object for the new element and for it's siblings
+	clln.update(
+		{"name":parent}, 
+		{
+			$push:{
+				"children":{
+					"name":name,
+					"wt":edge_wt
+				}
+			}
+		},
+		function (err, numUpdated){
+			if(err)cb(err);
+			else if (numUpdated!=0){
+				
+				// create a new json object and insert into the collection
+				onParentUpdated(clln, parent,name, function(err, result){
+					if(err)cblog(err);
+					else if (result!=null){
+						
+						var parent_children = services_children[parent];
+						var num_parent_children = parent_children.length;
+						for(var i=0; i<num_parent_children; i++){
+							services_siblings[parent_children[i][KEY_CHILDREN_NAME]].push(name);
+						}
+						
+						services_children[name]=[];
+						services_siblings[name]=[];
+						for(var i=0; i<num_parent_children; i++){
+							services_siblings[name].push(parent_children[i][KEY_CHILDREN_NAME]);
+						}
+						services_children[parent].push({"name":name, "wt":edge_wt});
+						
+						cb(null, result);
+					}
+				});
+			}
+		}
+	);
+	
+} 
 //------------------
 mongoClient.connect(url, function(err, db){
 	if(err) console.log("there was an error: " ,err);
@@ -523,8 +616,14 @@ mongoClient.connect(url, function(err, db){
 					else if (result!=null){
 						
 						console.log(result);
-						
-						db.close();
+						addChildService(clln, "b2", "c5", 0.2, function(err, result){
+							if(err)console.log(err);
+							else if (result!=null){
+								console.log(result);
+								db.close();
+					
+							}
+						});
 					}
 				});
 				
