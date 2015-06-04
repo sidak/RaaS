@@ -432,7 +432,7 @@ function updateTvAndOwr(clln, updateTvAndOwrStep, cb){
 			console.log(result);
 			// do bfs from (root) and then do a reverse bfs  
 			//bfs(queue, 
-
+			queue=[];
 			queue.push(service_root);
 			bfTraversal(clln, queue.shift(), updateTvAndOwrStep, function(err, result){
 				if(err)cb(err);
@@ -452,28 +452,44 @@ function updateTvAndOwr(clln, updateTvAndOwrStep, cb){
 }
 
 function updateStepFromNewFeedback(clln, ele, callback) {
-	
-	// get data from redis cache suppose that 
+	console.log("in updateStepFromNewFeedback\n\n");
+	// get data from redis cache suppose that
+	console.log(ele); 
 	var s_new_obj= redis_data[ele];
-	var s_new_t_votes= 0;
-	var s_new_relevance= s_new_obj[KEY_CRe];
-	
-	// TODO:	it's better to process these in batches or some units of feedback
-	// otherwise the code will be a blocking code
-	
-	for(var i=0; i<s_new_relevance.length;i++){
-		s_new_t_votes+=s_new_relevance[i];
-	}
-	var s_new_ratings=s_new_obj[KEY_CRa];
+	var s_new_relevance=[];
+	var s_new_ratings=[];
 	var s_new_owr=0;
-	for(var i=0; i<s_ratings.length;i++){
-		s_new_owr+=(s_ratings[i]*s_relevance[i]);
+	var s_old_owr=0;
+	var s_owr=0;
+	var s_new_t_votes= 0;
+	var s_old_t_votes=0;
+	var s_t_votes=0;
+	
+	// if only new ratings have been given to this 
+		
+	if(s_new_obj!=undefined){
+		console.log(s_new_obj);
+		s_new_relevance= s_new_obj[KEY_CRe];
+		console.log(s_new_relevance);
+		// TODO:	it's better to process these in batches or some units of feedback
+		// otherwise the code will be a blocking code
+
+		for(var i=0; i<s_new_relevance.length;i++){
+			s_new_t_votes+=s_new_relevance[i];
+		}
+		s_new_ratings=s_new_obj[KEY_CRa];
+
+		for(var i=0; i<s_new_ratings.length;i++){
+			s_new_owr+=(s_new_ratings[i]*s_new_relevance[i]);
+		}
 	}
-	var s_old_t_votes=services_tv[ele];
-	var s_t_votes= s_new_t_votes+s_old_t_votes;
-	var s_old_owr=services_owr[ele]*services_tv[ele];
+	s_old_t_votes=services_tv[ele];
+	s_t_votes= s_new_t_votes+s_old_t_votes;
+	s_old_owr=services_owr[ele]*services_tv[ele];
 	s_owr= s_new_owr+s_old_owr;
-	s_owr/=s_t_votes;
+	// divide by 0 
+	if(s_t_votes!=0) s_owr/=s_t_votes;
+	
 	console.log("s_t_votes is ", s_t_votes);
 	console.log("s_owr is ",s_owr);
 	
@@ -483,7 +499,7 @@ function updateStepFromNewFeedback(clln, ele, callback) {
 	
 	
 	// loop for it's children and push them into the queue
-	var s_children = s_new_obj[KEY_CHILDREN];
+	var s_children = services_children[ele];
 	var s_num_children= s_children.length;
 	
 	for(var i=0; i<s_num_children; i++){
@@ -596,15 +612,15 @@ function aggregateFeedback(clln, updateTvAndOwrStep, cb){
 function createNewServiceObject(parent, name){
 	var obj = {
 					"name":name,
-					"agg_rating_score":-1,
-					"own_rating_cont":-1,
-					"children_rating_cont":-1,
-					"own_wmean_rating":-1,						
-					"universe_wmean_rating":-1,
+					"agg_rating_score":0,
+					"own_rating_cont":0,
+					"children_rating_cont":0,
+					"own_wmean_rating":0,						
+					"universe_wmean_rating":0,
 					"consumer_ratings":[],
 					"consumer_relevance":[],
-					"rating_trust_value":-1,
-					"trust_votes":-1,
+					"rating_trust_value":0,
+					"trust_votes":0,
 					"children":[],
 					"parent":[parent]
 			}
@@ -659,7 +675,12 @@ function addChildService(clln, parent, name, edge_wt, cb ){
 							services_siblings[name].push(parent_children[i][KEY_CHILDREN_NAME]);
 						}
 						services_children[parent].push({"name":name, "wt":edge_wt});
-						
+						services_ars[name]=0;
+						services_owr[name]=0;
+						services_rtv[name]=0;
+						services_tv[name]=0;
+						services_uwr[name]=0;
+						console.log(services_children);
 						cb(null, result);
 					}
 				});
