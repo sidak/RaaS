@@ -223,7 +223,7 @@ function uwrCalcStep(clln, ele, callback) {
 	// Rating U(x) , for the node/service element 'ele'
 	// And also calculate the value of the	U(x) for it's children 
 	// and save it for use by them during the traversal
-	
+	console.log("uwr calc step for : ",ele);
 	var s_uwr=0;
 	var s_name = ele;
 	var s_uwr_children=0;
@@ -432,6 +432,7 @@ function updateTvAndOwr(clln, updateTvAndOwrStep, cb){
 			console.log(result);
 			// do bfs from (root) and then do a reverse bfs  
 			//bfs(queue, 
+			element_list=[];
 			queue=[];
 			queue.push(service_root);
 			bfTraversal(clln, queue.shift(), updateTvAndOwrStep, function(err, result){
@@ -452,6 +453,8 @@ function updateTvAndOwr(clln, updateTvAndOwrStep, cb){
 }
 
 function updateStepFromNewFeedback(clln, ele, callback) {
+	element_list.push(ele);
+	
 	console.log("in updateStepFromNewFeedback\n\n");
 	// get data from redis cache suppose that
 	console.log(ele); 

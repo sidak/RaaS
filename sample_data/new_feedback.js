@@ -43,6 +43,12 @@ var new_data = {
 					"consumer_ratings":[1,1,1,1,5,5,4,3,2,1,4],
 					"consumer_relevance":[5,5,5,5,1,1,1,1,4,5,4],
 					
+				},
+				"c5":{
+					"agg_rating_score":0,
+					"consumer_ratings":[5,1,3,1,5,4,4,3,3,2,2],
+					"consumer_relevance":[1,5,2,5,2,3,1,2,1,3,4],
+					
 				}
 					
 			};
