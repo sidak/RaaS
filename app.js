@@ -139,6 +139,10 @@ function onConnectionEstablished(clln, cb){
 	});
 }
 function updateStepFromStart(clln, ele, callback) {
+	// Async task corresponding to a breadth first traversal
+	// Read a service , update it's trust votes and own weighted rating
+	// and at last append it's children services to the queue
+			
 	element_list.push(ele);
 	// read the ele from db
 	getJsonObjectByNameFromDB( clln, ele, function(err, result){
@@ -331,7 +335,9 @@ function uwrCalcStep(clln, ele, callback) {
 }
 
 function remainingScoresCalcStep(clln, ele, callback) {
-	
+	// Used for calculating rtv (trust value of ratings), 
+	// crc (child rating contribution), orc (own rating contribution),
+	// ars (aggregated rating score)
 	
 	var s_name = ele;
 	var s_uwr=services_uwr[s_name];
@@ -345,6 +351,8 @@ function remainingScoresCalcStep(clln, ele, callback) {
 	var s_crc_num=0;
 	var s_crc_denom=0;
 	
+	// The children array consists of objects with 
+	// name and weight as properties
 	var s_children=services_children[s_name];
 	var s_children_name=[];
 	var s_children_wt=[];
@@ -355,7 +363,10 @@ function remainingScoresCalcStep(clln, ele, callback) {
 		s_children_wt.push(s_children[i][KEY_CHILDREN_WT]);
 	}
 	
+	// B(x)= beta * R(x) + (1-beta) * U(x)
 	s_orc= ((beta*s_owr)+((1-beta)*s_uwr));
+	
+	// T(x) = Tx + Summation( T(ci) / 2^d(ci,x) )
 	s_rtv= s_tv;
 	if(s_num_children!=0){
 		for(var i=0; i<s_num_children; i++){
@@ -364,7 +375,11 @@ function remainingScoresCalcStep(clln, ele, callback) {
 			s_crc_num+= (services_ars[s_child_name]*services_rtv[s_child_name]*s_children_wt[i]);
 			s_crc_denom+= (services_rtv[s_child_name]*s_children_wt[i]);
 		} 
+		
+		// C(x)= Summation ( S(ci) * T(ci) * w(x,ci) ) / Summation ( T(ci) * w(x,ci) )
 		s_crc= s_crc_num/s_crc_denom;
+		
+		// S(x) = alpha * B(x) + (1-alpha) * C(x)
 		s_ars= (alpha*s_orc) + ((1-alpha)*s_crc);
 	
 	}
@@ -397,12 +412,13 @@ function remainingScoresCalcStep(clln, ele, callback) {
 }
 
 
-// Final task for traversal
+// Final task after traversal is done
 function onBFTraversalComplete(cb) { 
 	cb(null,'Done updating'); 
 }
 
-// A general async bfTraversal:
+// A general async traversal for traversing the service tree 
+// in a breadth-first manner
 function bfTraversal(clln, element, traversalStep, cb) {
   if(element) {
 	traversalStep( clln, element, function(err, result) {
@@ -418,7 +434,11 @@ function bfTraversal(clln, element, traversalStep, cb) {
 	return onBFTraversalComplete(cb);
   }
 }
-			
+
+// Updating the tv and owr with an appropriate
+// traversal step passed as parameter which 
+// can be used for updating with recent feedback or 
+// feedback from start			
 function updateTvAndOwr(clln, updateTvAndOwrStep, cb){
 	
 	console.log(" In function updateTvAndOwr : now finding one doc \n\n");
@@ -430,8 +450,9 @@ function updateTvAndOwr(clln, updateTvAndOwrStep, cb){
 			console.log("the root is ", service_root);
 			console.log("\n the metadata is \n");					
 			console.log(result);
-			// do bfs from (root) and then do a reverse bfs  
-			//bfs(queue, 
+			
+			// ELement list saves the order in which traversal proceeds 
+			// which can be utilised the next time you have to traverse the tree
 			element_list=[];
 			queue=[];
 			queue.push(service_root);
@@ -442,10 +463,6 @@ function updateTvAndOwr(clln, updateTvAndOwrStep, cb){
 				}
 			});
 			
-			// Async task corresponding to a breadth first traversal
-			// Read a service , update it's trust votes and own weighted rating
-			// and at last append it's children services to the queue
-			
 			// TODO: Also check out that keys are not working when used in form of constants
 			
 		}
@@ -453,10 +470,15 @@ function updateTvAndOwr(clln, updateTvAndOwrStep, cb){
 }
 
 function updateStepFromNewFeedback(clln, ele, callback) {
+	
+	// Update element list since new elments may have been added 
 	element_list.push(ele);
 	
 	console.log("in updateStepFromNewFeedback\n\n");
-	// get data from redis cache suppose that
+	// get data from redis cache 
+	// for now suppose that the it is in the format
+	// as specified by the file new_feedback.js
+	
 	console.log(ele); 
 	var s_new_obj= redis_data[ele];
 	var s_new_relevance=[];
@@ -468,15 +490,17 @@ function updateStepFromNewFeedback(clln, ele, callback) {
 	var s_old_t_votes=0;
 	var s_t_votes=0;
 	
-	// if only new ratings have been given to this 
+	// Calculate the new tv (Trust Votes) and
+	// owr (Own Weighted Mean Rating) if only new ratings 
+	// have been given to this ele
 		
 	if(s_new_obj!=undefined){
 		console.log(s_new_obj);
 		s_new_relevance= s_new_obj[KEY_CRe];
 		console.log(s_new_relevance);
-		// TODO:	it's better to process these in batches or some units of feedback
+		// TODO:it's better to process these in batches or some units of feedback
 		// otherwise the code will be a blocking code
-
+		// 
 		for(var i=0; i<s_new_relevance.length;i++){
 			s_new_t_votes+=s_new_relevance[i];
 		}
@@ -490,7 +514,8 @@ function updateStepFromNewFeedback(clln, ele, callback) {
 	s_t_votes= s_new_t_votes+s_old_t_votes;
 	s_old_owr=services_owr[ele]*services_tv[ele];
 	s_owr= s_new_owr+s_old_owr;
-	// divide by 0 
+	
+	// Check s_t_votes for not equal to zero before dividing by it
 	if(s_t_votes!=0) s_owr/=s_t_votes;
 	
 	console.log("s_t_votes is ", s_t_votes);
@@ -583,7 +608,8 @@ function updateRemainingScores(clln, cb){
 	
 }
 
-// TODO: aggregate feedback from the last saved point 
+// Used for aggregating the feedback and calculating scores 
+// from the start or for the recent incoming feedbacks
 
 function aggregateFeedback(clln, updateTvAndOwrStep, cb){
 	console.log('In function aggregateFeedback: ');
@@ -593,7 +619,6 @@ function aggregateFeedback(clln, updateTvAndOwrStep, cb){
 			
 			console.log(result);
 			
-			// update u_x and other scores for all other services
 			updateUWR(clln, function(err, result){
 				if(err)cb(err);
 				else if (result!=null){
