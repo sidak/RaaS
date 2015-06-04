@@ -489,7 +489,7 @@ function updateStepFromNewFeedback(clln, ele, callback) {
 	var s_new_t_votes= 0;
 	var s_old_t_votes=0;
 	var s_t_votes=0;
-	
+	var s_new_feedback_ct=0;
 	// Calculate the new tv (Trust Votes) and
 	// owr (Own Weighted Mean Rating) if only new ratings 
 	// have been given to this ele
@@ -509,6 +509,7 @@ function updateStepFromNewFeedback(clln, ele, callback) {
 		for(var i=0; i<s_new_ratings.length;i++){
 			s_new_owr+=(s_new_ratings[i]*s_new_relevance[i]);
 		}
+		s_new_feedback_ct+= s_new_relevance.length;
 	}
 	s_old_t_votes=services_tv[ele];
 	s_t_votes= s_new_t_votes+s_old_t_votes;
@@ -545,6 +546,9 @@ function updateStepFromNewFeedback(clln, ele, callback) {
 				"trust_votes":s_t_votes,
 				"consumer_ratings":s_new_ratings,
 				"consumer_relevance":s_new_relevance
+			},
+			$inc:{
+				"consumer_feedback_count":s_new_feedback_ct
 			}
 		},
 		function (err, numUpdated){
@@ -647,6 +651,7 @@ function createNewServiceObject(parent, name){
 					"universe_wmean_rating":0,
 					"consumer_ratings":[],
 					"consumer_relevance":[],
+					"consumer_feedback_count":0,
 					"rating_trust_value":0,
 					"trust_votes":0,
 					"children":[],
