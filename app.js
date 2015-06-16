@@ -115,7 +115,7 @@ var services_owr={};
 var services_uwr={};
 var services_rtv={};
 var services_ars={};
-			
+
 //--------------------- helper methods
 
 // it assumes that connection has been established
@@ -383,8 +383,12 @@ function remainingScoresCalcStep(clln, ele, callback) {
 		s_crc= s_crc_num/s_crc_denom;
 		
 		// S(x) = alpha * B(x) + (1-alpha) * C(x)
-		s_ars= (alpha*s_orc) + ((1-alpha)*s_crc);
-	
+		if(s_orc!=0){
+			s_ars= (alpha*s_orc) + ((1-alpha)*s_crc);
+		}
+		else {
+			s_ars=s_crc;
+		}
 	}
 	else {
 		s_ars=s_orc;
