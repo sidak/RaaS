@@ -168,7 +168,7 @@ function updateStepFromStart(clln, ele, callback) {
 			for(var i=0; i<s_ratings.length;i++){
 				s_owr+=(s_ratings[i]*s_relevance[i]);
 			}
-			s_owr/=s_t_votes;
+			if(s_t_votes!=0) s_owr/=s_t_votes;
 			console.log("s_t_votes is ", s_t_votes);
 			console.log("s_owr is ",s_owr);
 			
@@ -304,8 +304,9 @@ function uwrCalcStep(clln, ele, callback) {
 		
 		// Combining the contribution with appropriate weights
 		s_uwr_children= ( (gamma1*siblings_ra_re) +(gamma2*cousins_ra_re));
-		s_uwr_children/= ( (gamma1*siblings_tv) +(gamma2*cousins_tv));
-		
+		if(((gamma1*siblings_tv) +(gamma2*cousins_tv))!==0){
+			s_uwr_children/= ( (gamma1*siblings_tv) +(gamma2*cousins_tv));
+		}
 		console.log("s_uwr_children is : \n"); 
 		console.log(s_uwr_children);
 		
@@ -744,6 +745,11 @@ mongoClient.connect(url, function(err, db){
 						
 						console.log(result);
 						console.log('Done aggregating feedback from the start');
+						console.log(services_ars);
+						console.log(services_owr);
+						console.log(services_siblings);
+						console.log(services_uwr);
+						console.log(services_rtv);
 						/*addChildService(clln, "b2", "c5", 0.2, function(err, result){
 							if(err)console.log(err);
 							else if (result!=null){

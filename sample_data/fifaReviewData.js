@@ -181,3 +181,5 @@ var data=[
 		"parent":["fifa14"]
 	}
 ];
+
+module.exports=data;
