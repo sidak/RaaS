@@ -8,7 +8,9 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 // The json data for the service tree
-var service_data = require('./sample_data/paper_example');
+// var service_data = require('./sample_data/paper_example');
+
+var service_data = require('./sample_data/fifaReviewData');
 var redis_data = require('./sample_data/new_feedback');
 
 var app = express();
@@ -741,7 +743,8 @@ mongoClient.connect(url, function(err, db){
 					else if (result!=null){
 						
 						console.log(result);
-						addChildService(clln, "b2", "c5", 0.2, function(err, result){
+						console.log('Done aggregating feedback from the start');
+						/*addChildService(clln, "b2", "c5", 0.2, function(err, result){
 							if(err)console.log(err);
 							else if (result!=null){
 								console.log(result);
@@ -751,10 +754,12 @@ mongoClient.connect(url, function(err, db){
 										console.log(result);
 										db.close();
 									}
+									// TODO: update the scores in cache
 								});
 					
 							}
 						});
+						*/
 					}
 				});
 				
