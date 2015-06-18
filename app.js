@@ -28,7 +28,7 @@ mongoClient.connect(url, function (err, db){
 });
 
 // GLOBAL VARIABLES ----------------------------
-serviceId=[];
+services_id={};
 element_list=[];				
 service_root;
 queue =[];
@@ -126,6 +126,7 @@ router.get('/services/:id/reviews', services.getAllReviewsForService);
 router.delete('/services/:id/reviews', services.deleteAllReviewsForService);
 
 router.get('/feedback/:id', feedback.getFeedbackById);
+router.get('/feedback', feedback.getCompleteFeedback);
 
 router.get('/configure', configure.getCompleteConfiguration);
 router.post('/configure', configure.setCompleteConfiguration);

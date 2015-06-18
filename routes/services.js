@@ -131,7 +131,7 @@ exports.addService= function (req, res){
 		}
 		else if (result!=null){
 			var id = result[0]._id;
-			serviceId[reqName]=id;
+			services_id[reqName]=id;
 			res.send("child service "+ reqName +" and id "+ id+" successfully added");
 		}
 	});
