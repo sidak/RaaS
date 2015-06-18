@@ -14,6 +14,67 @@ var feedback = require('./routes/feedback');
 // The json data for the service tree
 // var service_data = require('./sample_data/paper_example');
 
+var mongodb =require('mongodb');
+var mongoClient = mongodb.MongoClient;
+
+// connection url - where our mongodb server is running
+var url = 'mongodb://localhost:27017/raas';
+
+mongoClient.connect(url, function (err, db){
+	if(err)console.log(err);
+	else {
+		express.request.db=express.response.db=db;
+	}
+});
+
+// GLOBAL VARIABLES ----------------------------
+serviceId=[];
+element_list=[];				
+service_root;
+queue =[];
+services_children={};
+services_siblings={};
+services_tv={};
+services_owr={};
+services_uwr={};
+services_rtv={};
+services_ars={};
+// ------------------------------------------------
+
+// GLOBAL CONSTANTS -------------------------------------
+
+//-----------system parameters----------------------------
+// TODO: Experiment with the values and analyze the results
+
+alpha = 0.6;
+beta = 0.5;
+gamma1 = 0.75; 
+// for siblings
+gamma2 = 0.25; 
+// for cousins
+
+//---------------------- CONSTANTS---------------
+CLLN_NAME = "services";
+META= "meta";
+KEY_NAME="name";
+KEY_ARS="agg_rating_score";
+KEY_ORC="own_rating_cont";
+KEY_CRC="children_rating_cont";
+KEY_OWR="own_wmean_rating";
+KEY_UWR="universe_wmean_rating";
+KEY_CRa="consumer_ratings";
+KEY_CRe="consumer_relevance";
+KEY_CFCt="consumer_feedback_count";
+KEY_RTV="rating_trust_value";
+KEY_TV="trust_votes";
+KEY_CHILDREN="children";
+KEY_SIBLINGS="siblings";
+KEY_PARENT="parent";
+KEY_CHILDREN_NAME="name";
+KEY_CHILDREN_WT="wt";
+
+// -----------------------------------------------
+
 var service_data = require('./sample_data/fifaReviewData');
 var redis_data = require('./sample_data/new_feedback');
 
@@ -37,14 +98,18 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// var router = express.Router();
-var router= app.Router(); 
+var router = express.Router();
+//var router= app.Router(); 
 
 
 // Routes
 
 //  use Express’s router.route() to handle multiple routes for the same URI
 // ------------------------------------------------------------------
+// initiliase should create the database and the collection 
+// and populate with the root
+
+//router.post('/init', init.initialise);
 
 router.post('/services',services.addService);
 
