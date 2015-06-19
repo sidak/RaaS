@@ -13,7 +13,7 @@ function getJsonObjectByNameFromDB(clln, name, cb){
 	myCursor.each(function(err,result){
 		if(err)cb(err);
 		else if(result!=null){
-			cb("", result);
+			cb(null, result);
 		}
 	});
 }
@@ -32,7 +32,8 @@ function updateStepFromStart(clln, ele, callback) {
 	// Async task corresponding to a breadth first traversal
 	// Read a service , update it's trust votes and own weighted rating
 	// and at last append it's children services to the queue
-			
+	console.log("in updateStepFromStart ");
+	console.log(ele);		
 	element_list.push(ele);
 	// read the ele from db
 	getJsonObjectByNameFromDB( clln, ele, function(err, result){
@@ -72,9 +73,11 @@ function updateStepFromStart(clln, ele, callback) {
 			var s_siblings=[];
 			if(s_parent.length!=0){
 				s_parent_children=services_children[s_parent[0]];
-				for(var i=0; i<s_parent_children.length; i++){
-					if(s_parent_children[i][KEY_CHILDREN_NAME]!=s_obj[KEY_NAME]){
-						s_siblings.push(s_parent_children[i][KEY_CHILDREN_NAME]);
+				if(s_parent_children!==undefined){
+					for(var i=0; i<s_parent_children.length; i++){
+						if(s_parent_children[i][KEY_CHILDREN_NAME]!=s_obj[KEY_NAME]){
+							s_siblings.push(s_parent_children[i][KEY_CHILDREN_NAME]);
+						}
 					}
 				}
 			}
