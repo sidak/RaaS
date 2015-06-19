@@ -1,186 +1,39 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-
-var services = require('./routes/services');
-var configure = require('./routes/configure');
-var feedback = require('./routes/feedback');
-
-//var users = require('./routes/users');
-// The json data for the service tree
-// var service_data = require('./sample_data/paper_example');
-
-var service_data = require('./sample_data/fifaReviewData');
-var redis_data = require('./sample_data/new_feedback');
-
-var app = express();
-
-// ----------------------------------------------------
-
-var mongodb =require("mongodb");
-var mongoClient = mongodb.MongoClient;
-// connection url - where our mongodb server is running
-
-var url = 'mongodb://localhost:27017/proto';
+var ObjectId = require('mongodb').ObjectID;
 
 // ------------------------------------------------
-
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-
-// uncomment after placing your favicon in /public
-//app.use(favicon(__dirname + '/public/favicon.ico'));
-app.use(logger('dev'));
-
-// configure body parser
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', routes);
-app.use('/users', users);
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
-
-// error handlers
-
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-      message: err.message,
-      error: err
-    });
-  });
-}
-
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.render('error', {
-    message: err.message,
-    error: {}
-  });
-});
-
-// Routes
-app.post('/services',services.addService);
-
-app.get('/services', services.findAllServices);
-app.delete('/services', services.deleteAllServices);
-
-app.get('/services/:id', services.findServiceById);
-
-app.put('/services/:id', services.updateService);
-app.delete('/services/:id', services.deleteService);
-
-app.post('/services/:id/reviews', services.addReviewForService);
-app.get('/services/:id/reviews', services.getAllReviewsForService);
-app.delete('/services/:id/reviews', services.deleteAllReviewsForService);
-
-app.get('/feedback/:id', feedback.getFeedbackById);
-
-app.get('/configure', configure.getCompleteConfiguration);
-app.post('/configure', configure.setCompleteConfiguration);
-app.put('/configure', configure.updateCompleteConfiguration);
-app.delete('/configure', configure.deleteCompleteConfiguration);
-
-
-app.get('/configure/:id', configure.getConfigurationById);
-app.post('/configure/:id', configure.setConfigurationById);
-app.put('/configure/:id', configure.updateConfigurationById);
-app.delete('/configure/:id', configure.deleteConfigurationById);
-
-
-
-
-module.exports = app;
-//-----------system parameters----------------------------
-
-var alpha = 0.6;
-var beta = 0.5;
-var gamma1 = 0.75; 
-// for siblings
-var gamma2 = 0.25; 
-// for cousins
-
-//---------------------- CONSTANTS---------------
-
-var META= "meta";
-var KEY_NAME="name";
-var KEY_ARS="agg_rating_score";
-var KEY_ORC="own_rating_cont";
-var KEY_CRC="children_rating_cont";
-var KEY_OWR="own_wmean_rating";
-var KEY_UWR="universe_wmean_rating";
-var KEY_CRa="consumer_ratings";
-var KEY_CRe="consumer_relevance";
-var KEY_CFCt="consumer_feedback_count";
-var KEY_RTV="rating_trust_value";
-var KEY_TV="trust_votes";
-var KEY_CHILDREN="children";
-var KEY_SIBLINGS="siblings";
-var KEY_PARENT="parent";
-var KEY_CHILDREN_NAME="name";
-var KEY_CHILDREN_WT="wt";
-
-
-//------------------ global variables
-var element_list=[];				
-var service_root;
-var queue =[];
-var services_children={};
-var services_siblings={};
-var services_tv={};
-var services_owr={};
-var services_uwr={};
-var services_rtv={};
-var services_ars={};
+var db;
+var clln;
 
 //--------------------- helper methods
 
 // it assumes that connection has been established
-function getJsonObjectByNameFromDB(collection, name, cb){
-	var myCursor = collection.find({"name":name});
+function getJsonObjectByNameFromDB(clln, name, cb){
+	var myCursor = clln.find({"name":name});
 	myCursor.limit(1);			
 	myCursor.each(function(err,result){
 		if(err)cb(err);
 		else if(result!=null){
-			cb("", result);
+			cb(null, result);
+		}
+	});
+}
+function getJsonObjectByIdFromDB(clln, id, cb){
+	var myCursor = clln.find({_id:new ObjectId(id)});
+	myCursor.limit(1);			
+	myCursor.each(function(err,result){
+		if(err)cb(err);
+		else if(result!=null){
+			cb(null, result);
 		}
 	});
 }
 
-function onConnectionEstablished(clln, cb){
-	console.log('In function onConnectionEstablished: ');
-	clln.insert(service_data, function(err, result){
-		if(err)cb(err);
-		else {
-			cb(null, 'Results of insertion are \n'+result);
-					
-		}
-	});
-}
 function updateStepFromStart(clln, ele, callback) {
 	// Async task corresponding to a breadth first traversal
 	// Read a service , update it's trust votes and own weighted rating
 	// and at last append it's children services to the queue
-			
+	console.log("in updateStepFromStart ");
+	console.log(ele);		
 	element_list.push(ele);
 	// read the ele from db
 	getJsonObjectByNameFromDB( clln, ele, function(err, result){
@@ -220,9 +73,11 @@ function updateStepFromStart(clln, ele, callback) {
 			var s_siblings=[];
 			if(s_parent.length!=0){
 				s_parent_children=services_children[s_parent[0]];
-				for(var i=0; i<s_parent_children.length; i++){
-					if(s_parent_children[i][KEY_CHILDREN_NAME]!=s_obj[KEY_NAME]){
-						s_siblings.push(s_parent_children[i][KEY_CHILDREN_NAME]);
+				if(s_parent_children!==undefined){
+					for(var i=0; i<s_parent_children.length; i++){
+						if(s_parent_children[i][KEY_CHILDREN_NAME]!=s_obj[KEY_NAME]){
+							s_siblings.push(s_parent_children[i][KEY_CHILDREN_NAME]);
+						}
 					}
 				}
 			}
@@ -684,134 +539,41 @@ function aggregateFeedback(clln, updateTvAndOwrStep, cb){
 		}
 	});
 }
-function createNewServiceObject(parent, name){
-	var obj = {
-					"name":name,
-					"agg_rating_score":0,
-					"own_rating_cont":0,
-					"children_rating_cont":0,
-					"own_wmean_rating":0,						
-					"universe_wmean_rating":0,
-					"consumer_ratings":[],
-					"consumer_relevance":[],
-					"consumer_feedback_count":0,
-					"rating_trust_value":0,
-					"trust_votes":0,
-					"children":[],
-					"parent":[parent]
+
+exports.getFeedbackById= function( req, res ){
+	db = req.db;
+	clln = db.collection(CLLN_NAME);
+	var reqId = req.params.id;
+	var reqName;
+	for (var property in services_id) {
+		if (services_id.hasOwnProperty(property)) {
+			if(services_id[property]==reqId){
+				reqName=""+ property;
+				break;
 			}
-	return obj;
-}
-function onParentUpdated(clln, parent, name,cb){
-	
-	var new_child = createNewServiceObject(parent, name);
-	
-	clln.insert(new_child, function(err, result){
-		if(err)cb(err);
-		else {
-			cb(null, 'Results of insertion are \n'+result);
+		}
+	}
+	aggregateFeedback(clln, updateStepFromStart, function(err, result){
+		if(err) res.send("there was an error in aggregating feedback"+err);
+		else if (result!=null){
+			res.send(
+					"Aggregated feedback is "
+					+"\n" + "ARS: "+services_ars[reqName] 
+					+"\n" + "OWR: "+services_owr[reqName]
+					+ "\n" +"UWR: "+services_uwr[reqName]
+					+ "\n" + "RTV: "+services_rtv[reqName]
+					+ "\n" + "TV: "+services_tv[reqName]
+			);
 		}
 	});
-	
 }
-function addChildService(clln, parent, name, edge_wt, cb ){	
-	
-	// update the parent's children array with the name and the edge wt of child
-	// in the database
-	// update the local service_childen object for the parent and also init to [] for the new one
-	// update the local service_siblings object for the new element and for it's siblings
-	clln.update(
-		{"name":parent}, 
-		{
-			$push:{
-				"children":{
-					"name":name,
-					"wt":edge_wt
-				}
-			}
-		},
-		function (err, numUpdated){
-			if(err)cb(err);
-			else if (numUpdated!=0){
-				
-				// create a new json object and insert into the collection
-				onParentUpdated(clln, parent,name, function(err, result){
-					if(err)cblog(err);
-					else if (result!=null){
-						
-						var parent_children = services_children[parent];
-						var num_parent_children = parent_children.length;
-						for(var i=0; i<num_parent_children; i++){
-							services_siblings[parent_children[i][KEY_CHILDREN_NAME]].push(name);
-						}
-						
-						services_children[name]=[];
-						services_siblings[name]=[];
-						for(var i=0; i<num_parent_children; i++){
-							services_siblings[name].push(parent_children[i][KEY_CHILDREN_NAME]);
-						}
-						services_children[parent].push({"name":name, "wt":edge_wt});
-						services_ars[name]=0;
-						services_owr[name]=0;
-						services_rtv[name]=0;
-						services_tv[name]=0;
-						services_uwr[name]=0;
-						console.log(services_children);
-						cb(null, result);
-					}
-				});
-			}
+exports.getCompleteFeedback = function (req, res){
+	db = req.db;
+	clln = db.collection(CLLN_NAME);
+	aggregateFeedback(clln, updateStepFromStart, function(err, result){
+		if(err) res.send("there was an error in aggregating feedback"+err);
+		else if (result!=null){
+			res.send("feedback aggregated successfully" +result);
 		}
-	);
-	
-} 
-
-//------------------
-mongoClient.connect(url, function(err, db){
-	if(err) console.log("there was an error: " ,err);
-	else {
-				
-		console.log("connection esatblished to url ",url);
-		var clln = db.collection("services");
-		
-		onConnectionEstablished(clln, function(err, result){
-			if(err)console.log(err);
-			else if (result!=null){
-				
-				console.log(result); // intermediate result
-				aggregateFeedback(clln, updateStepFromStart, function(err, result){
-					if(err)console.log(err);
-					else if (result!=null){
-						
-						console.log(result);
-						console.log('Done aggregating feedback from the start');
-						console.log(services_ars);
-						console.log(services_owr);
-						console.log(services_siblings);
-						console.log(services_uwr);
-						console.log(services_rtv);
-						/*addChildService(clln, "b2", "c5", 0.2, function(err, result){
-							if(err)console.log(err);
-							else if (result!=null){
-								console.log(result);
-								aggregateFeedback(clln, updateStepFromNewFeedback, function (err, result){
-									if(err)console.log(err);
-									else if(result!=null){
-										console.log(result);
-										db.close();
-									}
-									// TODO: update the scores in cache
-								});
-					
-							}
-						});
-						*/
-					}
-				});
-				
-					
-			}
-		});
-		
-	}		
-});
+	});
+}
