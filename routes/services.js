@@ -258,9 +258,6 @@ exports.findServiceById= function (req, res){
 		}
 	}); 
 };
-exports.updateServiceById= function (req, res){
-	
-};
 // It works well 
 exports.deleteServiceById= function (req, res){
 	
@@ -331,8 +328,4 @@ exports.getAllReviewsForService= function (req, res){
 			}
 	
 	);
-};
-
-exports.deleteAllReviewsForService= function (req, res){
-	
 };

@@ -95,12 +95,10 @@ router.delete('/services', services.deleteAllServices);
 
 router.get('/services/:id', services.findServiceById);
 
-router.put('/services/:id', services.updateServiceById);
 router.delete('/services/:id', services.deleteServiceById);
 
 router.post('/services/:id/reviews', services.addReviewForService);
 router.get('/services/:id/reviews', services.getAllReviewsForService);
-router.delete('/services/:id/reviews', services.deleteAllReviewsForService);
 
 router.get('/feedback/:id', feedback.getFeedbackById);
 router.get('/feedback', feedback.getCompleteFeedback);
