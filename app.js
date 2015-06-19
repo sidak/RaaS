@@ -20,58 +20,35 @@ var mongoClient = mongodb.MongoClient;
 // connection url - where our mongodb server is running
 var url = 'mongodb://localhost:27017/raas';
 
+// Think of way of initialising the thing
 mongoClient.connect(url, function (err, db){
 	if(err)console.log(err);
 	else {
 		express.request.db=express.response.db=db;
+		var clln = db.collection("services");
+		var metadata={ 
+					name:"meta",						
+					root:"a",
+				};
+		clln.insert(metadata, function (err,result){
+			if(err)console.log(err);
+			else if (result!=null){
+				console.log(result);
+				services.onParentUpdated(clln, "meta", "a", function (err, result){
+					if(err)console.log(err);
+					else if (result!=null){
+						//console.log(result);
+						console.log(result);
+						console.log(result["ops"][0]["_id"]);
+						services_id["a"]=result["ops"][0]["_id"];
+					}
+				});
+			}
+		});	
+		
+		
 	}
 });
-
-// GLOBAL VARIABLES ----------------------------
-services_id={};
-element_list=[];				
-service_root;
-queue =[];
-services_children={};
-services_siblings={};
-services_tv={};
-services_owr={};
-services_uwr={};
-services_rtv={};
-services_ars={};
-// ------------------------------------------------
-
-// GLOBAL CONSTANTS -------------------------------------
-
-//-----------system parameters----------------------------
-// TODO: Experiment with the values and analyze the results
-
-alpha = 0.6;
-beta = 0.5;
-gamma1 = 0.75; 
-// for siblings
-gamma2 = 0.25; 
-// for cousins
-
-//---------------------- CONSTANTS---------------
-CLLN_NAME = "services";
-META= "meta";
-KEY_NAME="name";
-KEY_ARS="agg_rating_score";
-KEY_ORC="own_rating_cont";
-KEY_CRC="children_rating_cont";
-KEY_OWR="own_wmean_rating";
-KEY_UWR="universe_wmean_rating";
-KEY_CRa="consumer_ratings";
-KEY_CRe="consumer_relevance";
-KEY_CFCt="consumer_feedback_count";
-KEY_RTV="rating_trust_value";
-KEY_TV="trust_votes";
-KEY_CHILDREN="children";
-KEY_SIBLINGS="siblings";
-KEY_PARENT="parent";
-KEY_CHILDREN_NAME="name";
-KEY_CHILDREN_WT="wt";
 
 // -----------------------------------------------
 
@@ -127,7 +104,7 @@ router.delete('/services/:id/reviews', services.deleteAllReviewsForService);
 
 router.get('/feedback/:id', feedback.getFeedbackById);
 router.get('/feedback', feedback.getCompleteFeedback);
-
+/*
 router.get('/configure', configure.getCompleteConfiguration);
 router.post('/configure', configure.setCompleteConfiguration);
 router.put('/configure', configure.updateCompleteConfiguration);
@@ -138,7 +115,7 @@ router.get('/configure/:id', configure.getConfigurationById);
 router.post('/configure/:id', configure.setConfigurationById);
 router.put('/configure/:id', configure.updateConfigurationById);
 router.delete('/configure/:id', configure.deleteConfigurationById);
-
+*/
 // middleware to use for all requests
 router.use(function(req, res, next) {
     // do logging
