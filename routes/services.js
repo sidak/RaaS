@@ -4,6 +4,53 @@ var ObjectId = require('mongodb').ObjectID;
 var db;
 var clln;
 
+// GLOBAL VARIABLES ----------------------------
+services_id={};
+element_list=[];				
+service_root="";
+queue =[];
+services_children={};
+services_siblings={};
+services_tv={};
+services_owr={};
+services_uwr={};
+services_rtv={};
+services_ars={};
+// ------------------------------------------------
+
+// GLOBAL CONSTANTS -------------------------------------
+
+//-----------system parameters----------------------------
+// TODO: Experiment with the values and analyze the results
+
+alpha = 0.6;
+beta = 0.5;
+gamma1 = 0.75; 
+// for siblings
+gamma2 = 0.25; 
+// for cousins
+
+//---------------------- CONSTANTS---------------
+CLLN_NAME = "services";
+META= "meta";
+KEY_NAME="name";
+KEY_ARS="agg_rating_score";
+KEY_ORC="own_rating_cont";
+KEY_CRC="children_rating_cont";
+KEY_OWR="own_wmean_rating";
+KEY_UWR="universe_wmean_rating";
+KEY_CRa="consumer_ratings";
+KEY_CRe="consumer_relevance";
+KEY_CFCt="consumer_feedback_count";
+KEY_RTV="rating_trust_value";
+KEY_TV="trust_votes";
+KEY_CHILDREN="children";
+KEY_SIBLINGS="siblings";
+KEY_PARENT="parent";
+KEY_CHILDREN_NAME="name";
+KEY_CHILDREN_WT="wt";
+
+
 //--------------------- helper methods
 
 // it assumes that connection has been established
@@ -46,18 +93,21 @@ function createNewServiceObject(parent, name){
 			}
 	return obj;
 }
-function onParentUpdated(clln, parent, name,cb){
+function oPU(clln, parent, name,cb){
 	
 	var new_child = createNewServiceObject(parent, name);
 	
 	clln.insert(new_child, function(err, result){
 		if(err)cb(err);
 		else {
-			cb(null, 'Results of insertion are \n'+result);
+			console.log("done propely");
+			cb(null, result);
 		}
 	});
 	
 }
+exports.onParentUpdated=oPU;
+
 function addChildService(clln, parent, name, edge_wt, cb ){	
 	
 	// update the parent's children array with the name and the edge wt of child
@@ -79,20 +129,29 @@ function addChildService(clln, parent, name, edge_wt, cb ){
 			else if (numUpdated!=0){
 				
 				// create a new json object and insert into the collection
-				onParentUpdated(clln, parent,name, function(err, result){
+				oPU(clln, parent,name, function(err, result){
 					if(err)cb(err);
 					else if (result!=null){
-						
+						console.log(services_children);
 						var parent_children = services_children[parent];
-						var num_parent_children = parent_children.length;
-						for(var i=0; i<num_parent_children; i++){
-							services_siblings[parent_children[i][KEY_CHILDREN_NAME]].push(name);
-						}
 						
 						services_children[name]=[];
 						services_siblings[name]=[];
-						for(var i=0; i<num_parent_children; i++){
-							services_siblings[name].push(parent_children[i][KEY_CHILDREN_NAME]);
+						console.log(services_children[parent]);
+						if(services_children[parent]!==undefined){
+							var num_parent_children = parent_children.length;
+							for(var i=0; i<num_parent_children; i++){
+								services_siblings[parent_children[i][KEY_CHILDREN_NAME]].push(name);
+							}
+							
+							for(var i=0; i<num_parent_children; i++){
+								services_siblings[name].push(parent_children[i][KEY_CHILDREN_NAME]);
+							}
+							console.log("shit happend");
+						}
+						else {
+							console.log("services_children for parent is initialised to []");
+							services_children[parent]=[];
 						}
 						services_children[parent].push({"name":name, "wt":edge_wt});
 						services_ars[name]=0;
@@ -120,7 +179,7 @@ exports.addService= function (req, res){
 	clln= db.collection(CLLN_NAME);
 	var reqParent = req.body.parent;
 	var reqName= req.body.name;
-	var reqEdgeWt= req.body.edgeWt;
+	var reqEdgeWt= parseFloat(req.body.edgeWt);
 	
 	// There are chances that it may not work
 	// since it's global variables may not be in memory
@@ -130,14 +189,17 @@ exports.addService= function (req, res){
 			res.send("there was an error in adding service");
 		}
 		else if (result!=null){
-			var id = result[0]._id;
+			var id = result["ops"][0]["_id"];
 			services_id[reqName]=id;
 			res.send("child service "+ reqName +" and id "+ id+" successfully added");
+			console.log(id);
 		}
 	});
 };
 
 
+// This needs to be fixed. It returns a lot of data 
+// but not the services data
 exports.findAllServices= function (req, res){
 	db = req.db;
 	clln= db.collection(CLLN_NAME);
@@ -147,11 +209,27 @@ exports.findAllServices= function (req, res){
 		}
 		else if (result!=null){
 			console.log("found all services");
-			res.send(result);
+			// Using custom replacer for resolving 
+			// circular reference
+			
+			var cache = [];
+			res.send(
+				JSON.stringify(result, function(key, value) {
+					if (typeof value === 'object' && value !== null) {
+						if (cache.indexOf(value) !== -1) {
+							// Circular reference found, discard key
+							return ;
+						}
+						// Store value in our collection
+						cache.push(value);
+					}
+					return value;
+				})
+			);
 		}
 	});
 };
-
+// It works well
 exports.deleteAllServices= function (req, res){
 	db = req.db;
 	clln= db.collection(CLLN_NAME);
@@ -165,6 +243,7 @@ exports.deleteAllServices= function (req, res){
 		}
 	});
 };
+//It works well
 exports.findServiceById= function (req, res){
 	db = req.db;
 	clln= db.collection(CLLN_NAME);
@@ -176,13 +255,14 @@ exports.findServiceById= function (req, res){
 		}
 		else if (result!=null){
 			console.log("found the requested service");
-			res.send("found the requested service"+result);
+			res.send(result);
 		}
 	}); 
 };
 exports.updateServiceById= function (req, res){
 	
 };
+// It works well 
 exports.deleteServiceById= function (req, res){
 	
 	db = req.db;
@@ -200,21 +280,21 @@ exports.deleteServiceById= function (req, res){
 	}); 
 };
 
-
+// It works well
 // given id of the service and the rating and relevance by the user  
 exports.addReviewForService= function (req, res){
 	db = req.db;
 	clln= db.collection(CLLN_NAME);
 	
-	var reqId= req.body.id;
-	var reqRating= req.body.rating;
-	var reqRelevance= req.body.relevance;
+	var reqId= req.params.id;
+	var reqRating= (req.body.rating-'0');
+	var reqRelevance= (req.body.relevance-'0');
 	
 	clln.update(
 		{_id: new ObjectId(reqId)}, 
 		{
 			$push:{
-				"consumer_rating":reqRating,
+				"consumer_ratings":reqRating,
 				"consumer_relevance":reqRelevance
 			}
 		},
@@ -227,13 +307,15 @@ exports.addReviewForService= function (req, res){
 	);
 	
 };
+
+// This does not work
 exports.getAllReviewsForService= function (req, res){
 	db = req.db;
 	clln= db.collection(CLLN_NAME);
 	var reqId = req.params.id;
 	clln.find(
 			{_id: new ObjectId(reqId)},
-			{ "consumer_ratings":1, "consumer_relevance":1 } 
+			{ "consumer_ratings":1, "consumer_relevance":1 }, 
 			// remove double quotes if it does not work
 			
 			function (err, result){
