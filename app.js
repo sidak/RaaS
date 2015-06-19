@@ -7,6 +7,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var services = require('./routes/services');
+var init = require('./routes/init');
 var configure = require('./routes/configure');
 var feedback = require('./routes/feedback');
 
@@ -14,45 +15,8 @@ var feedback = require('./routes/feedback');
 // The json data for the service tree
 // var service_data = require('./sample_data/paper_example');
 
-var mongodb =require('mongodb');
-var mongoClient = mongodb.MongoClient;
-
-// connection url - where our mongodb server is running
-var url = 'mongodb://localhost:27017/raas';
-
-// Think of way of initialising the thing
-mongoClient.connect(url, function (err, db){
-	if(err)console.log(err);
-	else {
-		express.request.db=express.response.db=db;
-		var clln = db.collection("services");
-		var metadata={ 
-					name:"meta",						
-					root:"a",
-				};
-		clln.insert(metadata, function (err,result){
-			if(err)console.log(err);
-			else if (result!=null){
-				console.log(result);
-				services.onParentUpdated(clln, "meta", "a", function (err, result){
-					if(err)console.log(err);
-					else if (result!=null){
-						//console.log(result);
-						console.log(result);
-						console.log(result["ops"][0]["_id"]);
-						services_id["a"]=result["ops"][0]["_id"];
-					}
-				});
-			}
-		});	
-		
-		
-	}
-});
-
 // -----------------------------------------------
 
-var service_data = require('./sample_data/fifaReviewData');
 var redis_data = require('./sample_data/new_feedback');
 
 var app = express();
@@ -78,7 +42,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 var router = express.Router();
 //var router= app.Router(); 
 
-
+function insertRoot (req, res){
+	var reqRoot = req.body.root;
+	var db = req.db;
+	var clln = db.collection(CLLN_NAME);
+	services.onParentUpdated(clln, META, reqRoot, function (err, result){
+		if(err)console.log(err);
+		else if (result!=null){
+			//console.log(result);
+			console.log(result);
+			console.log(result["ops"][0]["_id"]);
+			services_id[reqRoot]=result["ops"][0]["_id"];
+			res.send("System initialised with root " + reqRoot +" with id "+ result["ops"][0]["_id"]);
+		}
+	});
+}
 // Routes
 
 //  use Express’s router.route() to handle multiple routes for the same URI
@@ -86,7 +64,7 @@ var router = express.Router();
 // initiliase should create the database and the collection 
 // and populate with the root
 
-//router.post('/init', init.initialise);
+router.post('/init', init.initialise, insertRoot);
 
 router.post('/services',services.addService);
 
@@ -102,6 +80,7 @@ router.get('/services/:id/reviews', services.getAllReviewsForService);
 
 router.get('/feedback/:id', feedback.getFeedbackById);
 router.get('/feedback', feedback.getCompleteFeedback);
+
 /*
 router.get('/configure', configure.getCompleteConfiguration);
 router.post('/configure', configure.setCompleteConfiguration);

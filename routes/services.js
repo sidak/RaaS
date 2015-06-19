@@ -31,8 +31,7 @@ gamma2 = 0.25;
 // for cousins
 
 //---------------------- CONSTANTS---------------
-CLLN_NAME = "services";
-META= "meta";
+
 KEY_NAME="name";
 KEY_ARS="agg_rating_score";
 KEY_ORC="own_rating_cont";
@@ -231,6 +230,8 @@ exports.findAllServices= function (req, res){
 // It works well
 exports.deleteAllServices= function (req, res){
 	db = req.db;
+	console.log(CLLN_NAME);
+	console.log(db);
 	clln= db.collection(CLLN_NAME);
 	clln.remove({}, function (err, result){
 		if(err){
