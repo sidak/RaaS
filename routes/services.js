@@ -201,31 +201,30 @@ exports.addService= function (req, res){
 // This needs to be fixed. It returns a lot of data 
 // but not the services data
 exports.findAllServices= function (req, res){
+	
 	db = req.db;
 	clln= db.collection(CLLN_NAME);
-	clln.find(function (err, result){
-		if(err){
-			res.send("there was an error in finding all service");
-		}
-		else if (result!=null){
-			console.log("found all services");
-			// Using custom replacer for resolving 
-			// circular reference
+	var cursor = clln.find();
+	var ans="";
+	console.log("in find all services");
+	cursor.each(function(err,result){
+		if(err) ans+=("there was an error : ");
+		else if(result!=null){
 			
-			var cache = [];
-			res.send(
-				JSON.stringify(result, function(key, value) {
-					if (typeof value === 'object' && value !== null) {
-						if (cache.indexOf(value) !== -1) {
-							// Circular reference found, discard key
-							return ;
-						}
-						// Store value in our collection
-						cache.push(value);
-					}
-					return value;
-				})
-			);
+			console.log(result);
+			var doc = JSON.stringify(result);
+			console.log("it's a stringified");
+			console.log(doc);
+			ans += doc;
+			console.log("outputting ans");
+			console.log(ans);
+			ans+='\n';
+			
+		}
+		else if(result===null){
+				console.log("hello");
+				res.set('Content-Type', 'text/html');
+				res.send(ans);
 		}
 	});
 };
@@ -307,23 +306,26 @@ exports.addReviewForService= function (req, res){
 	);
 	
 };
-
-// This does not work
+// This works well
 exports.getAllReviewsForService= function (req, res){
 	db = req.db;
 	clln= db.collection(CLLN_NAME);
-	var reqId = req.params.id;
-	clln.find(
-			{_id: new ObjectId(reqId)},
-			{ "consumer_ratings":1, "consumer_relevance":1 }, 
-			// remove double quotes if it does not work
-			
+	var reqId = new ObjectId(req.params.id);
+	console.log(req.params.id);
+	console.log(reqId);
+	var cursor= clln.find(
+				{"_id": reqId},
+				{ "consumer_ratings":1, "consumer_relevance":1 }
+				// remove double quotes if it does not work
+				);
+	cursor.each(
 			function (err, result){
 				if(err){
 					res.send("there was an error in finding all the reviews for the service");
 				}
 				else if (result!=null){
-					console.log("found all services");
+					console.log("found all reviews for this service");
+					console.log(result);
 					res.send(result);
 				}
 			}
