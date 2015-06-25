@@ -11,12 +11,11 @@ var init = require('./routes/init');
 var configure = require('./routes/configure');
 var feedback = require('./routes/feedback');
 
-//var users = require('./routes/users');
 // The json data for the service tree
 // var service_data = require('./sample_data/paper_example');
 
 // -----------------------------------------------
-
+// TODO: Integrate Redis
 var redis_data = require('./sample_data/new_feedback');
 
 var app = express();
@@ -61,10 +60,11 @@ function insertRoot (req, res){
 
 //  use Express’s router.route() to handle multiple routes for the same URI
 // ------------------------------------------------------------------
-// initiliase should create the database and the collection 
+// initialise should create the database and the collection 
 // and populate with the root
 
 router.post('/init', init.initialise, insertRoot);
+router.post('/init/:fileName', init.initialiseFromFile);
 
 router.post('/services',services.addService);
 
@@ -81,6 +81,7 @@ router.get('/services/:id/reviews', services.getAllReviewsForService);
 router.get('/feedback/:id', feedback.getFeedbackById);
 router.get('/feedback', feedback.getCompleteFeedback);
 
+// TODO
 /*
 router.get('/configure', configure.getCompleteConfiguration);
 router.post('/configure', configure.setCompleteConfiguration);

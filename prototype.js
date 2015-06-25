@@ -5,15 +5,11 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var services = require('./routes/services');
-var configure = require('./routes/configure');
-var feedback = require('./routes/feedback');
-
 //var users = require('./routes/users');
 // The json data for the service tree
 // var service_data = require('./sample_data/paper_example');
 
-var service_data = require('./sample_data/fifaReviewData');
+var service_data = require('./sample_data/fifaReviewData1');
 var redis_data = require('./sample_data/new_feedback');
 
 var app = express();
@@ -43,10 +39,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', routes);
-app.use('/users', users);
-
+	
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
@@ -78,33 +71,6 @@ app.use(function(err, req, res, next) {
   });
 });
 
-// Routes
-app.post('/services',services.addService);
-
-app.get('/services', services.findAllServices);
-app.delete('/services', services.deleteAllServices);
-
-app.get('/services/:id', services.findServiceById);
-
-app.put('/services/:id', services.updateService);
-app.delete('/services/:id', services.deleteService);
-
-app.post('/services/:id/reviews', services.addReviewForService);
-app.get('/services/:id/reviews', services.getAllReviewsForService);
-app.delete('/services/:id/reviews', services.deleteAllReviewsForService);
-
-app.get('/feedback/:id', feedback.getFeedbackById);
-
-app.get('/configure', configure.getCompleteConfiguration);
-app.post('/configure', configure.setCompleteConfiguration);
-app.put('/configure', configure.updateCompleteConfiguration);
-app.delete('/configure', configure.deleteCompleteConfiguration);
-
-
-app.get('/configure/:id', configure.getConfigurationById);
-app.post('/configure/:id', configure.setConfigurationById);
-app.put('/configure/:id', configure.updateConfigurationById);
-app.delete('/configure/:id', configure.deleteConfigurationById);
 
 
 
@@ -482,6 +448,7 @@ function bfTraversal(clln, element, traversalStep, cb) {
 // traversal step passed as parameter which 
 // can be used for updating with recent feedback or 
 // feedback from start			
+
 function updateTvAndOwr(clln, updateTvAndOwrStep, cb){
 	
 	console.log(" In function updateTvAndOwr : now finding one doc \n\n");
