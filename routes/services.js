@@ -24,7 +24,7 @@ services_ars={};
 // TODO: Experiment with the values and analyze the results
 
 alpha = 0.6;
-beta = 0.5;
+beta = 0.25;
 gamma1 = 0.75; 
 // for siblings
 gamma2 = 0.25; 

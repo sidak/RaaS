@@ -3,7 +3,18 @@ var ObjectId = require('mongodb').ObjectID;
 // ------------------------------------------------
 var db;
 var clln;
-
+var dyBeta= {
+	"office":0.75,
+	"office2013":0.75,
+	"office365":0.75,
+	"Microsoft-Office-Student-1User-Download":0.75,
+	"Microsoft-Office-Business-1User-Download":0.75,
+	"Microsoft-Office-Professional-1User-Download":0.75,
+	"Office-Home-Macs-Card-Disc":0.75,
+	"Office-365-Personal-Subscription-Card":0.75,
+	"Microsoft-Office-Small-Business-Premium":0.75,
+	"Microsoft-University-Subscription-Validation-Required":0.75
+};
 //--------------------- helper methods
 
 // it assumes that connection has been established
@@ -257,8 +268,9 @@ function remainingScoresCalcStep(clln, ele, callback) {
 		s_children_wt.push(s_children[i][KEY_CHILDREN_WT]);
 	}
 	
-	// B(x)= beta * R(x) + (1-beta) * U(x)
-	s_orc= ((beta*s_owr)+((1-beta)*s_uwr));
+	// B(x)= dyBeta[] * R(x) + (1-dyBeta[]) * U(x)
+	console.log("dynamic beta \n", dyBeta[s_name]);
+	s_orc= ((dyBeta[s_name]*s_owr)+((1-dyBeta[s_name])*s_uwr));
 	
 	// T(x) = Tx + Summation( T(ci) / 2^d(ci,x) )
 	s_rtv= s_tv;
