@@ -9,5 +9,27 @@ This API was written during my research work on the topic, **Relevance calculati
 
 It is based on the general architecture proposed in the paper - "Hierarchical Aggregation of Consumer Ratings for Service Ecosystem". The authors for the same being : Rohit Ranchal, Ajay Mohindra, Nianjun Zhou, Shubir Kapoor and Bharat Bhargava. 
 
+##Endpoints
+
+###Service Resources
+
+- `GET` services
+- `GET` services/:id
+- `GET` services/:id/reviews
+- `POST` services
+- `POST` services/:id/reviews
+- `DELETE` services
+- `DELETE` services/:id
+
+###Feedback Resources
+
+- `GET` feedback
+- `GET` feedback/:id
+
+###Init Method
+
+- `GET` init/:fileName
+- `POST` init
+
 
 
