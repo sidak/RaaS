@@ -7,7 +7,7 @@ This project provides a *REST API* for consumer Rating as a Service (*RaaS*) arc
 
 This API was written during my research work on the topic, **Relevance calculation of reviews in Service-Oriented Architecture**. This research was carried out as a part of my **Research Internship at Purdue University, USA**. 
 
-It is based on the general architecture proposed in the paper - R. Ranchal, A. Mohindra, N. Zhou, S. Kapoor, and B. Bhargava, "Hierarchical Aggregation of Consumer Ratings for Service Ecosystem," in Proceedings of 22nd IEEE International Conference on Web Services, pp. 575-582, 2015. 
+It is based on the general architecture proposed in the paper - R. Ranchal, A. Mohindra, N. Zhou, S. Kapoor, and B. Bhargava, "[Hierarchical Aggregation of Consumer Ratings for Service Ecosystem](http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=7195617&newsearch=true&queryText=Hierarchical%20Aggregation%20of%20Consumer%20Ratings%20for%20Service%20Ecosystem)," in Proceedings of 22nd IEEE International Conference on Web Services, pp. 575-582, 2015. 
 
 ##Endpoints
 
