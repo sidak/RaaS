@@ -3,6 +3,7 @@ var ObjectId = require('mongodb').ObjectID;
 // ------------------------------------------------
 var db;
 var clln;
+var BETA = 0.25;
 var dyBeta= {
 	"office":0.75,
 	"office2013":0.75,
@@ -269,8 +270,9 @@ function remainingScoresCalcStep(clln, ele, callback) {
 	}
 	
 	// B(x)= dyBeta[] * R(x) + (1-dyBeta[]) * U(x)
-	console.log("dynamic beta \n", dyBeta[s_name]);
-	s_orc= ((dyBeta[s_name]*s_owr)+((1-dyBeta[s_name])*s_uwr));
+	//console.log("dynamic beta \n", dyBeta[s_name]);
+	//s_orc= ((dyBeta[s_name]*s_owr)+((1-dyBeta[s_name])*s_uwr));
+	s_orc= ((BETA*s_owr)+((1-BETA)*s_uwr));
 	
 	// T(x) = Tx + Summation( T(ci) / 2^d(ci,x) )
 	s_rtv= s_tv;
