@@ -65,6 +65,7 @@ function insertRoot (req, res){
 
 router.post('/init', init.initialise, insertRoot);
 router.get('/init/:fileName', init.initialiseFromFile);
+router.get('/init/:fileName/:day/:month/:year', init.filterAndInitialiseFromFile);
 
 router.post('/services',services.addService);
 

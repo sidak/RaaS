@@ -39,6 +39,7 @@ KEY_OWR="own_wmean_rating";
 KEY_UWR="universe_wmean_rating";
 KEY_CRa="consumer_ratings";
 KEY_CRe="consumer_relevance";
+KEY_RD="review_dates";
 KEY_CFCt="consumer_feedback_count";
 KEY_RTV="rating_trust_value";
 KEY_TV="trust_votes";
