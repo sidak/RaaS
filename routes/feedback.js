@@ -1,3 +1,4 @@
+// Using native mongodb driver for node.js
 var ObjectId = require('mongodb').ObjectID;
 
 // ------------------------------------------------
@@ -16,6 +17,7 @@ var dyBeta= {
 	"Microsoft-Office-Small-Business-Premium":0.75,
 	"Microsoft-University-Subscription-Validation-Required":0.75
 };
+
 //--------------------- helper methods
 
 // it assumes that connection has been established
@@ -590,4 +592,44 @@ exports.getCompleteFeedback = function (req, res){
 			res.send("feedback aggregated successfully" +result);
 		}
 	});
+}
+
+exports.getRawAverageFeedback = function(req, res){
+
+	db = req.db;
+	clln = db.collection(CLLN_NAME);
+	
+	var rawAverages=[];
+	var names =[];
+
+	var cursor = clln.find({});
+
+	cursor.each(function(err, item){
+		
+		if(err || item == null){
+			console.log(err);
+			db.close();
+			console.log("fukc uou");
+  			console.log(rawAverages);
+  			console.log(names);
+			res.send("" + rawAverages + "\n"+ names);
+		}
+		else{
+
+			if(item.hasOwnProperty(KEY_CRa) && item[KEY_CRa].length>0){
+				var ratings = item[KEY_CRa];
+				var sum = 0;
+				for(var j=0; j<ratings.length; j++){
+					sum+= ratings[j];
+				}
+				console.log("sum is "+ sum);
+				sum/= ratings.length;
+				console.log(ratings.length);
+				rawAverages.push(sum);
+				names.push(item[KEY_NAME]);	
+			}
+		}
+	});
+	
+  	
 }
