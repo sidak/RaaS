@@ -599,9 +599,7 @@ exports.getRawAverageFeedback = function(req, res){
 	db = req.db;
 	clln = db.collection(CLLN_NAME);
 	
-	var rawAverages=[];
-	var names =[];
-
+	var result ="";
 	var cursor = clln.find({});
 
 	cursor.each(function(err, item){
@@ -610,9 +608,7 @@ exports.getRawAverageFeedback = function(req, res){
 			console.log(err);
 			db.close();
 			console.log("fukc uou");
-  			console.log(rawAverages);
-  			console.log(names);
-			res.send("" + rawAverages + "\n"+ names);
+			res.send(result);
 		}
 		else{
 
@@ -625,8 +621,34 @@ exports.getRawAverageFeedback = function(req, res){
 				console.log("sum is "+ sum);
 				sum/= ratings.length;
 				console.log(ratings.length);
-				rawAverages.push(sum);
-				names.push(item[KEY_NAME]);	
+				result+= item[KEY_NAME] + "\t" + sum +"\n";
+			}
+		}
+	});
+	
+  	
+}
+
+exports.getARS = function(req, res){
+
+	db = req.db;
+	clln = db.collection(CLLN_NAME);
+	
+	var result ="";
+	var cursor = clln.find({});
+
+	cursor.each(function(err, item){
+		
+		if(err || item == null){
+			console.log(err);
+			db.close();
+			console.log("fukc uou");
+  			res.send(result);
+		}
+		else{
+
+			if(item.hasOwnProperty(KEY_ARS)){
+				result+= item[KEY_NAME] + "\t" + item[KEY_ARS] +"\n";
 			}
 		}
 	});
