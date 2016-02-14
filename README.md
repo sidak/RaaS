@@ -31,5 +31,32 @@ It is based on the general architecture proposed in the paper - "Hierarchical Ag
 - `GET` init/:fileName
 - `POST` init
 
+## Steps to get started 
+
+- Installing MongoDB
+- Installing Node and NPM
+- Running the API 
+- Playing with the API
+
+### Installing MongoDB
+
+### Installing Node and NPM
+
+### Running the API
+
+```
+sudo service mongod start
+npm rebuild
+node bin/www
+```
+### Playing with the API
+
+Install Postman extension. Then experiment with different GET, POST, DELETE commands
+
+```
+GET http://localhost:3000/api/init/dataFile.js
+GET http://localhost:3000/api/feedback
+GET http://localhost:3000/api/services
+```
 
 
