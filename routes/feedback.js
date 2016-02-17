@@ -113,7 +113,8 @@ function updateStepFromStart(clln, ele, callback) {
 				{
 					$set:{
 						"own_wmean_rating":s_owr,
-						"trust_votes":s_t_votes
+						"trust_votes":s_t_votes,
+						"consumer_feedback_count":s_relevance.length
 					}
 				},
 				function (err, numUpdated){
@@ -311,7 +312,8 @@ function remainingScoresCalcStep(clln, ele, callback) {
 				"agg_rating_score":s_ars,
 				"own_rating_cont":s_orc,
 				"children_rating_cont":s_crc,
-				"rating_trust_value":s_rtv,
+				"rating_trust_value":s_rtv
+
 			}
 		},
 		function (err, numUpdated){
@@ -623,6 +625,9 @@ exports.getRawAverageFeedback = function(req, res){
 				console.log(ratings.length);
 				result+= item[KEY_NAME] + "\t" + sum +"\n";
 			}
+			else{  
+
+			}
 		}
 	});
 	
@@ -653,5 +658,29 @@ exports.getARS = function(req, res){
 		}
 	});
 	
-  	
+}
+
+exports.getFeedbackCount = function(req, res){
+
+	db = req.db;
+	clln = db.collection(CLLN_NAME);
+	
+	var result ="";
+	var cursor = clln.find({});
+
+	cursor.each(function(err, item){
+		
+		if(err || item == null){
+			console.log(err);
+			db.close();
+			console.log("fukc uou");
+  			res.send(result);
+		}
+		else{
+
+			if(item.hasOwnProperty(KEY_CFCt)){
+				result+= item[KEY_NAME] + "\t" + item[KEY_CFCt] +"\n";
+			}
+		}
+	});
 }

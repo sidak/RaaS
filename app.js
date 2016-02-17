@@ -82,6 +82,8 @@ router.get('/services/:id/reviews', services.getAllReviewsForService);
 router.get('/feedback/:id', feedback.getFeedbackById);
 router.get('/feedback', feedback.getCompleteFeedback);
 router.get('/rawAverage', feedback.getRawAverageFeedback);
+router.get('/feedbackCount', feedback.getFeedbackCount);
+
 router.get('/ars', feedback.getARS);
 
 // TODO
