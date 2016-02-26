@@ -11,3 +11,12 @@ npm-debug.log
 
 # for output files
 *.txt
+
+# for extras folder
+extras/*
+
+# for temp folder
+temp/*
+
+# for results folder
+results/*
