@@ -54,9 +54,11 @@ service mongod status
 ```
 
 ### Installing Node and NPM
+
+```
 sudo apt-get install nodejs
 sudo apt-get install npm
-
+```
 ### Running the API
 
 ```
