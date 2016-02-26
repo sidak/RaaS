@@ -40,7 +40,22 @@ It is based on the general architecture proposed in the paper - R. Ranchal, A. M
 
 ### Installing MongoDB
 
+```
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+```
+
+After this installation MongoDB will be automatically started. You can check this by running the following command.
+
+```
+service mongod status
+```
+
 ### Installing Node and NPM
+sudo apt-get install nodejs
+sudo apt-get install npm
 
 ### Running the API
 
@@ -51,13 +66,40 @@ node bin/www
 ```
 ### Playing with the API
 
-Install Postman extension. Then experiment with different GET, POST, DELETE commands
+Install Postman extension. https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en
+Then experiment with different GET, POST, DELETE commands
 
 ```
 GET http://localhost:3000/api/init/dataFile.js
 GET http://localhost:3000/api/feedback
 GET http://localhost:3000/api/services
 ```
+## Example of API requests to aggregate rating 
+
+Cleaning the environment
+
+`DELETE http://localhost:3000/api/services`  
+
+Initialize from file
+
+`GET http://localhost:3000/api/init/fifaReviewData_feb13.js`
+
+Or, you can initialize from file and simulate experiments before a previous date
+
+`GET http://localhost:3000/api/init/fifaReviewData_feb13.js/24/2/2015`
+
+Aggregate feedback, i.e. calculate rating scores for the entire service tree.
+
+`GET http://localhost:3000/api/feedback`
+
+Get the corresponding data with all scores calculated
+
+`GET http://localhost:3000/api/services`  
+
+Get the ARS (Aggregated Rating Scores) for each service
+
+`GET http://localhost:3000/api/ars`
+
 ##Legal
 
 If you intend to use this software, for any commercial usage, or as part of any research paper,
