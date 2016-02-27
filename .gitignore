@@ -9,9 +9,6 @@ data/
 # npm log for debugging
 npm-debug.log
 
-# for output files
-*.txt
-
 # for extras folder
 extras/*
 
