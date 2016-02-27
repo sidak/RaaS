@@ -1,0 +1,8 @@
+FAQ
+
+Q: How do I install package.json dependencies in the current directory using npm
+A: npm install (sudo if needed)
+
+Q: How to run the API?
+A: node bin/www
+
