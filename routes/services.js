@@ -43,6 +43,7 @@ KEY_RD="review_dates";
 KEY_CFCt="consumer_feedback_count";
 KEY_RTV="rating_trust_value";
 KEY_TV="trust_votes";
+KEY_RR= "reviewerRanking";	
 KEY_CHILDREN="children";
 KEY_SIBLINGS="siblings";
 KEY_PARENT="parent";
@@ -84,6 +85,7 @@ function createNewServiceObject(parent, name){
 					"universe_wmean_rating":0,
 					"consumer_ratings":[],
 					"consumer_relevance":[],
+					"reviewer_ranking":[],
 					"consumer_feedback_count":0,
 					"rating_trust_value":0,
 					"trust_votes":0,
@@ -278,6 +280,7 @@ exports.deleteServiceById= function (req, res){
 };
 
 // It works well
+// Doesn't add reviewer ratings
 // given id of the service and the rating and relevance by the user  
 exports.addReviewForService= function (req, res){
 	db = req.db;
@@ -313,8 +316,7 @@ exports.getAllReviewsForService= function (req, res){
 	console.log(reqId);
 	var cursor= clln.find(
 				{"_id": reqId},
-				{ "consumer_ratings":1, "consumer_relevance":1 }
-				// remove double quotes if it does not work
+				{ "consumer_ratings":1, "consumer_relevance":1 } // returns the data corresponding to these fields in the document
 				);
 	cursor.each(
 			function (err, result){

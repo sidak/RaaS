@@ -4,7 +4,7 @@ var ObjectId = require('mongodb').ObjectID;
 // ------------------------------------------------
 var db;
 var clln;
-var BETA = 0.25;
+var BETA = 0.50;
 var dyBeta= {
 	"office":0.75,
 	"office2013":0.75,
