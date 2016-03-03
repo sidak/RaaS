@@ -16,6 +16,8 @@ services_owr={};
 services_uwr={};
 services_rtv={};
 services_ars={};
+services_cred_tv={};
+
 // ------------------------------------------------
 
 // GLOBAL CONSTANTS -------------------------------------
@@ -30,7 +32,6 @@ gamma2 = 0.25;
 // for cousins
 
 //---------------------- CONSTANTS---------------
-
 KEY_NAME="name";
 KEY_ARS="agg_rating_score";
 KEY_ORC="own_rating_cont";
@@ -74,7 +75,6 @@ function getJsonObjectByIdFromDB(clln, id, cb){
 		}
 	});
 }
-
 function createNewServiceObject(parent, name){
 	var obj = {
 					"name":name,

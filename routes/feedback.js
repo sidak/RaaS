@@ -18,6 +18,13 @@ var dyBeta= {
 	"Microsoft-University-Subscription-Validation-Required":0.75
 };
 
+var IS_REP_TV = true;
+
+var NO_CRED = 0;
+var NO_TV_CRED = 1;
+var ALL_CRED = 2;
+
+var mode;
 //--------------------- helper methods
 
 // it assumes that connection has been established
@@ -31,6 +38,7 @@ function getJsonObjectByNameFromDB(clln, name, cb){
 		}
 	});
 }
+
 function getJsonObjectByIdFromDB(clln, id, cb){
 	var myCursor = clln.find({_id:new ObjectId(id)});
 	myCursor.limit(1);			
@@ -58,35 +66,69 @@ function updateStepFromStart(clln, ele, callback) {
 			var s_obj= result;
 			console.log(s_obj);
 			var s_t_votes= 0;
+			var s_owr=0;
 			var s_relevance= s_obj[KEY_CRe];
 			
+			var s_cred_t_votes=0;
+
+			var s_reviewer_rankings = s_obj[KEY_RR];
+
 			// TODO:	it's better to process these in batches or some units of feedback
 			// otherwise the code will be a blocking code
-			
+
 			for(var i=0; i<s_relevance.length;i++){
 				s_t_votes+=s_relevance[i];
 			}
-			var s_ratings=s_obj[KEY_CRa];
-			var s_owr=0;
-			for(var i=0; i<s_ratings.length;i++){
-				s_owr+=(s_ratings[i]*s_relevance[i]);
+
+			if(s_reviewer_rankings != undefined){
+				for(var i=0; i<s_relevance.length;i++){
+					s_cred_t_votes+=(s_relevance[i] * s_reviewer_rankings[i]);
+				}
 			}
-			if(s_t_votes!=0) s_owr/=s_t_votes;
+
+			var s_ratings=s_obj[KEY_CRa];
+			
+
+			
+			
+		
+
+			if(s_reviewer_rankings != undefined && (mode == NO_TV_CRED || mode == ALL_CRED)){
+				for(var i=0; i<s_ratings.length;i++){
+					s_owr+=(s_ratings[i]*s_relevance[i]*s_reviewer_rankings[i]);
+				}
+				if(s_cred_t_votes!=0) s_owr/=s_cred_t_votes;
+			}
+			else{
+				for(var i=0; i<s_ratings.length;i++){
+					s_owr+=(s_ratings[i]*s_relevance[i]);
+				}
+				if(s_t_votes!=0) s_owr/=s_t_votes;
+			}
+
+			console.log("s_cred_t_votes is ", s_cred_t_votes);
 			console.log("s_t_votes is ", s_t_votes);
 			console.log("s_owr is ",s_owr);
 			
+			if(ALL_CRED){
+				s_t_votes = s_cred_t_votes;
+			}
+
 			// update the local children, owr, tv object
 			services_children[s_obj[KEY_NAME]]= s_obj[KEY_CHILDREN];
 			services_owr[s_obj[KEY_NAME]]= s_owr;
 			services_tv[s_obj[KEY_NAME]]= s_t_votes;
+
+			services_cred_tv[s_obj[KEY_NAME]]= s_cred_t_votes;
 			
+
 			
 			// update the local siblings object
 			var s_parent = s_obj[KEY_PARENT];
 			var s_parent_children;
 			var s_siblings=[];
 			if(s_parent.length!=0){
-				s_parent_children=services_children[s_parent[0]];
+				s_parent_children=services_children[s_parent[0]]; // only one parent
 				if(s_parent_children!==undefined){
 					for(var i=0; i<s_parent_children.length; i++){
 						if(s_parent_children[i][KEY_CHILDREN_NAME]!=s_obj[KEY_NAME]){
@@ -190,9 +232,16 @@ function uwrCalcStep(clln, ele, callback) {
 				
 				console.log("cousin_children ",cousin_children); 
 				if(cousin_children.length!=0){
+
 					for (var j=0; j<cousin_children.length; j++){
-						cousins_ra_re+= (services_owr[cousin_children[j]]*services_tv[cousin_children[j]]);
-						cousins_tv+= services_tv[cousin_children[j]];
+						if(mode == NO_CRED){
+							cousins_ra_re+= (services_owr[cousin_children[j]]*services_tv[cousin_children[j]]);
+							cousins_tv+= services_tv[cousin_children[j]];
+						}
+						else{
+							cousins_ra_re+= (services_owr[cousin_children[j]]*services_cred_tv[cousin_children[j]]);
+							cousins_tv+= services_cred_tv[cousin_children[j]];
+						}
 					}
 				}
 			}
@@ -202,9 +251,16 @@ function uwrCalcStep(clln, ele, callback) {
 		for(var i=0; i<s_children.length; i++){
 			console.log("services owr ",services_owr[s_children[i]]);
 			console.log("services tv ",services_tv[s_children[i]]);
-			siblings_ra_re+= (services_owr[s_children[i]]*services_tv[s_children[i]]);
-			siblings_tv+= services_tv[s_children[i]];
-		} 
+			if(mode == NO_CRED){
+				siblings_ra_re+= (services_owr[s_children[i]]*services_tv[s_children[i]]);
+				siblings_tv+= services_tv[s_children[i]];
+			}
+			else{
+				siblings_ra_re+= (services_owr[s_children[i]]*services_cred_tv[s_children[i]]);
+				siblings_tv+= services_cred_tv[s_children[i]];
+			}
+		}
+
 		console.log("siblings_ra_re : ", siblings_ra_re);
 		console.log("siblings_tv : ", siblings_tv);
 		
@@ -571,6 +627,7 @@ exports.getFeedbackById= function( req, res ){
 			}
 		}
 	}
+	mode = NO_CRED;
 	aggregateFeedback(clln, updateStepFromStart, function(err, result){
 		if(err) res.send("there was an error in aggregating feedback"+err);
 		else if (result!=null){
@@ -585,6 +642,7 @@ exports.getFeedbackById= function( req, res ){
 		}
 	});
 }
+
 exports.getCompleteFeedback = function (req, res){
 	db = req.db;
 	clln = db.collection(CLLN_NAME);
