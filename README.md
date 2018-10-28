@@ -1,6 +1,6 @@
 # Rating as a Service (RaaS) Architecture
 
-##Description
+## Description
 This project provides a *REST API* for consumer Rating as a Service (*RaaS*) architecture, facilitating feedback aggregation in Service Ecosystem. It is written using *Node.js* and *Express* with *MongoDB* for persistance. 
 
 *RaaS* is a building block service that can be used to add the consumer feedback lifecycle feature in the development of various web platforms.
@@ -9,9 +9,9 @@ This API was written during my research work on the topic, **Relevance calculati
 
 It is based on the general architecture proposed in the paper - R. Ranchal, A. Mohindra, N. Zhou, S. Kapoor, and B. Bhargava, "[Hierarchical Aggregation of Consumer Ratings for Service Ecosystem](http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=7195617&newsearch=true&queryText=Hierarchical%20Aggregation%20of%20Consumer%20Ratings%20for%20Service%20Ecosystem)," in Proceedings of 22nd IEEE International Conference on Web Services, pp. 575-582, 2015. 
 
-##Endpoints
+## Endpoints
 
-###Service Resources
+### Service Resources
 
 - `GET` services
 - `GET` services/:id
@@ -21,12 +21,12 @@ It is based on the general architecture proposed in the paper - R. Ranchal, A. M
 - `DELETE` services
 - `DELETE` services/:id
 
-###Feedback Resources
+### Feedback Resources
 
 - `GET` feedback
 - `GET` feedback/:id
 
-###Init Method
+### Init Method
 
 - `GET` init/:fileName
 - `POST` init
@@ -102,14 +102,14 @@ Get the ARS (Aggregated Rating Scores) for each service
 
 `GET http://localhost:3000/api/ars`
 
-##Legal
+## Legal
 
 If you intend to use this software, for any commercial usage, or as part of any research paper,
 please contact the author for appropriate licensing.
 
 Outside of these conditions, the software lies under the [MIT License](http://sidak.mit-license.org/).
 
-##Disclaimer
+## Disclaimer
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
